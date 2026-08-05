@@ -252,7 +252,7 @@ export const CANDIDATS: Candidat[] = PRENOMS.map((prenom, i) => {
     nom: NOMS[i]!,
     prenom,
     cin: `${1000000 + i * 4321}`,
-    email: `${prenom.toLowerCase()}.${NOMS[i].toLowerCase().replace(/\s/g, "")}@email.tn`,
+    email: `${prenom.toLowerCase()}.${NOMS[i]!.toLowerCase().replace(/\s/g, "")}@email.tn`,
     telephone: `+216 ${20 + (i % 70)} ${100 + i} ${200 + i}`,
     ville,
     anneeNaissance: `${1998 + (i % 5)}`,
