@@ -10,33 +10,259 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccueilRouteImport } from './routes/accueil'
+import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as CandidatRouteImport } from './routes/candidat'
+import { Route as CoordinateurRouteImport } from './routes/coordinateur'
+import { Route as CandidatIndexRouteImport } from './routes/candidat.index'
+import { Route as CandidatCandidaturesRouteImport } from './routes/candidat.candidatures'
+import { Route as CandidatNotificationsRouteImport } from './routes/candidat.notifications'
+import { Route as CandidatProfilRouteImport } from './routes/candidat.profil'
+import { Route as CoordinateurIndexRouteImport } from './routes/coordinateur.index'
+import { Route as CoordinateurAppelsRouteImport } from './routes/coordinateur.appels'
+import { Route as CoordinateurMastersRouteImport } from './routes/coordinateur.masters'
+import { Route as CoordinateurNotificationsRouteImport } from './routes/coordinateur.notifications'
+import { Route as CoordinateurRevisionRouteImport } from './routes/coordinateur.revision'
+import { Route as MastersIndexRouteImport } from './routes/masters.index'
+import { Route as MastersMasterIdRouteImport } from './routes/masters.$masterId'
+import { Route as ProfilCreerRouteImport } from './routes/profil.creer'
+import { Route as CoordinateurCandidaturesIndexRouteImport } from './routes/coordinateur.candidatures.index'
+import { Route as CoordinateurCandidaturesCandidatureIdRouteImport } from './routes/coordinateur.candidatures.$candidatureId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccueilRoute = AccueilRouteImport.update({
+  id: '/accueil',
+  path: '/accueil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CandidatRoute = CandidatRouteImport.update({
+  id: '/candidat',
+  path: '/candidat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoordinateurRoute = CoordinateurRouteImport.update({
+  id: '/coordinateur',
+  path: '/coordinateur',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CandidatIndexRoute = CandidatIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CandidatRoute,
+} as any)
+const CandidatCandidaturesRoute = CandidatCandidaturesRouteImport.update({
+  id: '/candidatures',
+  path: '/candidatures',
+  getParentRoute: () => CandidatRoute,
+} as any)
+const CandidatNotificationsRoute = CandidatNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => CandidatRoute,
+} as any)
+const CandidatProfilRoute = CandidatProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => CandidatRoute,
+} as any)
+const CoordinateurIndexRoute = CoordinateurIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CoordinateurRoute,
+} as any)
+const CoordinateurAppelsRoute = CoordinateurAppelsRouteImport.update({
+  id: '/appels',
+  path: '/appels',
+  getParentRoute: () => CoordinateurRoute,
+} as any)
+const CoordinateurMastersRoute = CoordinateurMastersRouteImport.update({
+  id: '/masters',
+  path: '/masters',
+  getParentRoute: () => CoordinateurRoute,
+} as any)
+const CoordinateurNotificationsRoute =
+  CoordinateurNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => CoordinateurRoute,
+  } as any)
+const CoordinateurRevisionRoute = CoordinateurRevisionRouteImport.update({
+  id: '/revision',
+  path: '/revision',
+  getParentRoute: () => CoordinateurRoute,
+} as any)
+const MastersIndexRoute = MastersIndexRouteImport.update({
+  id: '/masters/',
+  path: '/masters/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MastersMasterIdRoute = MastersMasterIdRouteImport.update({
+  id: '/masters/$masterId',
+  path: '/masters/$masterId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfilCreerRoute = ProfilCreerRouteImport.update({
+  id: '/profil/creer',
+  path: '/profil/creer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoordinateurCandidaturesIndexRoute =
+  CoordinateurCandidaturesIndexRouteImport.update({
+    id: '/candidatures/',
+    path: '/candidatures/',
+    getParentRoute: () => CoordinateurRoute,
+  } as any)
+const CoordinateurCandidaturesCandidatureIdRoute =
+  CoordinateurCandidaturesCandidatureIdRouteImport.update({
+    id: '/candidatures/$candidatureId',
+    path: '/candidatures/$candidatureId',
+    getParentRoute: () => CoordinateurRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accueil': typeof AccueilRoute
+  '/assistant': typeof AssistantRoute
+  '/candidat': typeof CandidatRouteWithChildren
+  '/coordinateur': typeof CoordinateurRouteWithChildren
+  '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/notifications': typeof CandidatNotificationsRoute
+  '/candidat/profil': typeof CandidatProfilRoute
+  '/coordinateur/appels': typeof CoordinateurAppelsRoute
+  '/coordinateur/masters': typeof CoordinateurMastersRoute
+  '/coordinateur/notifications': typeof CoordinateurNotificationsRoute
+  '/coordinateur/revision': typeof CoordinateurRevisionRoute
+  '/masters/$masterId': typeof MastersMasterIdRoute
+  '/profil/creer': typeof ProfilCreerRoute
+  '/candidat/': typeof CandidatIndexRoute
+  '/coordinateur/': typeof CoordinateurIndexRoute
+  '/masters/': typeof MastersIndexRoute
+  '/coordinateur/candidatures/$candidatureId': typeof CoordinateurCandidaturesCandidatureIdRoute
+  '/coordinateur/candidatures/': typeof CoordinateurCandidaturesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accueil': typeof AccueilRoute
+  '/assistant': typeof AssistantRoute
+  '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/notifications': typeof CandidatNotificationsRoute
+  '/candidat/profil': typeof CandidatProfilRoute
+  '/coordinateur/appels': typeof CoordinateurAppelsRoute
+  '/coordinateur/masters': typeof CoordinateurMastersRoute
+  '/coordinateur/notifications': typeof CoordinateurNotificationsRoute
+  '/coordinateur/revision': typeof CoordinateurRevisionRoute
+  '/masters/$masterId': typeof MastersMasterIdRoute
+  '/profil/creer': typeof ProfilCreerRoute
+  '/candidat': typeof CandidatIndexRoute
+  '/coordinateur': typeof CoordinateurIndexRoute
+  '/masters': typeof MastersIndexRoute
+  '/coordinateur/candidatures/$candidatureId': typeof CoordinateurCandidaturesCandidatureIdRoute
+  '/coordinateur/candidatures': typeof CoordinateurCandidaturesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accueil': typeof AccueilRoute
+  '/assistant': typeof AssistantRoute
+  '/candidat': typeof CandidatRouteWithChildren
+  '/coordinateur': typeof CoordinateurRouteWithChildren
+  '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/notifications': typeof CandidatNotificationsRoute
+  '/candidat/profil': typeof CandidatProfilRoute
+  '/coordinateur/appels': typeof CoordinateurAppelsRoute
+  '/coordinateur/masters': typeof CoordinateurMastersRoute
+  '/coordinateur/notifications': typeof CoordinateurNotificationsRoute
+  '/coordinateur/revision': typeof CoordinateurRevisionRoute
+  '/masters/$masterId': typeof MastersMasterIdRoute
+  '/profil/creer': typeof ProfilCreerRoute
+  '/candidat/': typeof CandidatIndexRoute
+  '/coordinateur/': typeof CoordinateurIndexRoute
+  '/masters/': typeof MastersIndexRoute
+  '/coordinateur/candidatures/$candidatureId': typeof CoordinateurCandidaturesCandidatureIdRoute
+  '/coordinateur/candidatures/': typeof CoordinateurCandidaturesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/accueil'
+    | '/assistant'
+    | '/candidat'
+    | '/coordinateur'
+    | '/candidat/candidatures'
+    | '/candidat/notifications'
+    | '/candidat/profil'
+    | '/coordinateur/appels'
+    | '/coordinateur/masters'
+    | '/coordinateur/notifications'
+    | '/coordinateur/revision'
+    | '/masters/$masterId'
+    | '/profil/creer'
+    | '/candidat/'
+    | '/coordinateur/'
+    | '/masters/'
+    | '/coordinateur/candidatures/$candidatureId'
+    | '/coordinateur/candidatures/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/accueil'
+    | '/assistant'
+    | '/candidat/candidatures'
+    | '/candidat/notifications'
+    | '/candidat/profil'
+    | '/coordinateur/appels'
+    | '/coordinateur/masters'
+    | '/coordinateur/notifications'
+    | '/coordinateur/revision'
+    | '/masters/$masterId'
+    | '/profil/creer'
+    | '/candidat'
+    | '/coordinateur'
+    | '/masters'
+    | '/coordinateur/candidatures/$candidatureId'
+    | '/coordinateur/candidatures'
+  id:
+    | '__root__'
+    | '/'
+    | '/accueil'
+    | '/assistant'
+    | '/candidat'
+    | '/coordinateur'
+    | '/candidat/candidatures'
+    | '/candidat/notifications'
+    | '/candidat/profil'
+    | '/coordinateur/appels'
+    | '/coordinateur/masters'
+    | '/coordinateur/notifications'
+    | '/coordinateur/revision'
+    | '/masters/$masterId'
+    | '/profil/creer'
+    | '/candidat/'
+    | '/coordinateur/'
+    | '/masters/'
+    | '/coordinateur/candidatures/$candidatureId'
+    | '/coordinateur/candidatures/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccueilRoute: typeof AccueilRoute
+  AssistantRoute: typeof AssistantRoute
+  CandidatRoute: typeof CandidatRouteWithChildren
+  CoordinateurRoute: typeof CoordinateurRouteWithChildren
+  MastersMasterIdRoute: typeof MastersMasterIdRoute
+  ProfilCreerRoute: typeof ProfilCreerRoute
+  MastersIndexRoute: typeof MastersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +274,188 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/accueil': {
+      id: '/accueil'
+      path: '/accueil'
+      fullPath: '/accueil'
+      preLoaderRoute: typeof AccueilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/candidat': {
+      id: '/candidat'
+      path: '/candidat'
+      fullPath: '/candidat'
+      preLoaderRoute: typeof CandidatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coordinateur': {
+      id: '/coordinateur'
+      path: '/coordinateur'
+      fullPath: '/coordinateur'
+      preLoaderRoute: typeof CoordinateurRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/candidat/': {
+      id: '/candidat/'
+      path: '/'
+      fullPath: '/candidat/'
+      preLoaderRoute: typeof CandidatIndexRouteImport
+      parentRoute: typeof CandidatRoute
+    }
+    '/candidat/candidatures': {
+      id: '/candidat/candidatures'
+      path: '/candidatures'
+      fullPath: '/candidat/candidatures'
+      preLoaderRoute: typeof CandidatCandidaturesRouteImport
+      parentRoute: typeof CandidatRoute
+    }
+    '/candidat/notifications': {
+      id: '/candidat/notifications'
+      path: '/notifications'
+      fullPath: '/candidat/notifications'
+      preLoaderRoute: typeof CandidatNotificationsRouteImport
+      parentRoute: typeof CandidatRoute
+    }
+    '/candidat/profil': {
+      id: '/candidat/profil'
+      path: '/profil'
+      fullPath: '/candidat/profil'
+      preLoaderRoute: typeof CandidatProfilRouteImport
+      parentRoute: typeof CandidatRoute
+    }
+    '/coordinateur/': {
+      id: '/coordinateur/'
+      path: '/'
+      fullPath: '/coordinateur/'
+      preLoaderRoute: typeof CoordinateurIndexRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/coordinateur/appels': {
+      id: '/coordinateur/appels'
+      path: '/appels'
+      fullPath: '/coordinateur/appels'
+      preLoaderRoute: typeof CoordinateurAppelsRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/coordinateur/masters': {
+      id: '/coordinateur/masters'
+      path: '/masters'
+      fullPath: '/coordinateur/masters'
+      preLoaderRoute: typeof CoordinateurMastersRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/coordinateur/notifications': {
+      id: '/coordinateur/notifications'
+      path: '/notifications'
+      fullPath: '/coordinateur/notifications'
+      preLoaderRoute: typeof CoordinateurNotificationsRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/coordinateur/revision': {
+      id: '/coordinateur/revision'
+      path: '/revision'
+      fullPath: '/coordinateur/revision'
+      preLoaderRoute: typeof CoordinateurRevisionRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/masters/': {
+      id: '/masters/'
+      path: '/masters'
+      fullPath: '/masters/'
+      preLoaderRoute: typeof MastersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/masters/$masterId': {
+      id: '/masters/$masterId'
+      path: '/masters/$masterId'
+      fullPath: '/masters/$masterId'
+      preLoaderRoute: typeof MastersMasterIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profil/creer': {
+      id: '/profil/creer'
+      path: '/profil/creer'
+      fullPath: '/profil/creer'
+      preLoaderRoute: typeof ProfilCreerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coordinateur/candidatures/': {
+      id: '/coordinateur/candidatures/'
+      path: '/candidatures'
+      fullPath: '/coordinateur/candidatures/'
+      preLoaderRoute: typeof CoordinateurCandidaturesIndexRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/coordinateur/candidatures/$candidatureId': {
+      id: '/coordinateur/candidatures/$candidatureId'
+      path: '/candidatures/$candidatureId'
+      fullPath: '/coordinateur/candidatures/$candidatureId'
+      preLoaderRoute: typeof CoordinateurCandidaturesCandidatureIdRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
   }
 }
 
+interface CandidatRouteChildren {
+  CandidatCandidaturesRoute: typeof CandidatCandidaturesRoute
+  CandidatNotificationsRoute: typeof CandidatNotificationsRoute
+  CandidatProfilRoute: typeof CandidatProfilRoute
+  CandidatIndexRoute: typeof CandidatIndexRoute
+}
+
+const CandidatRouteChildren: CandidatRouteChildren = {
+  CandidatCandidaturesRoute: CandidatCandidaturesRoute,
+  CandidatNotificationsRoute: CandidatNotificationsRoute,
+  CandidatProfilRoute: CandidatProfilRoute,
+  CandidatIndexRoute: CandidatIndexRoute,
+}
+
+const CandidatRouteWithChildren = CandidatRoute._addFileChildren(
+  CandidatRouteChildren,
+)
+
+interface CoordinateurRouteChildren {
+  CoordinateurAppelsRoute: typeof CoordinateurAppelsRoute
+  CoordinateurMastersRoute: typeof CoordinateurMastersRoute
+  CoordinateurNotificationsRoute: typeof CoordinateurNotificationsRoute
+  CoordinateurRevisionRoute: typeof CoordinateurRevisionRoute
+  CoordinateurIndexRoute: typeof CoordinateurIndexRoute
+  CoordinateurCandidaturesCandidatureIdRoute: typeof CoordinateurCandidaturesCandidatureIdRoute
+  CoordinateurCandidaturesIndexRoute: typeof CoordinateurCandidaturesIndexRoute
+}
+
+const CoordinateurRouteChildren: CoordinateurRouteChildren = {
+  CoordinateurAppelsRoute: CoordinateurAppelsRoute,
+  CoordinateurMastersRoute: CoordinateurMastersRoute,
+  CoordinateurNotificationsRoute: CoordinateurNotificationsRoute,
+  CoordinateurRevisionRoute: CoordinateurRevisionRoute,
+  CoordinateurIndexRoute: CoordinateurIndexRoute,
+  CoordinateurCandidaturesCandidatureIdRoute:
+    CoordinateurCandidaturesCandidatureIdRoute,
+  CoordinateurCandidaturesIndexRoute: CoordinateurCandidaturesIndexRoute,
+}
+
+const CoordinateurRouteWithChildren = CoordinateurRoute._addFileChildren(
+  CoordinateurRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccueilRoute: AccueilRoute,
+  AssistantRoute: AssistantRoute,
+  CandidatRoute: CandidatRouteWithChildren,
+  CoordinateurRoute: CoordinateurRouteWithChildren,
+  MastersMasterIdRoute: MastersMasterIdRoute,
+  ProfilCreerRoute: ProfilCreerRoute,
+  MastersIndexRoute: MastersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
