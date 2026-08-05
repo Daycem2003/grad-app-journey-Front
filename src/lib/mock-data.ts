@@ -242,14 +242,14 @@ const NOMS = [
 ];
 
 export const CANDIDATS: Candidat[] = PRENOMS.map((prenom, i) => {
-  const ville = VILLES_TUNISIENNES[i % VILLES_TUNISIENNES.length];
+  const ville = VILLES_TUNISIENNES[i % VILLES_TUNISIENNES.length]!;
   const moy = (10 + ((i * 7) % 90) / 10).toFixed(2);
   const moy2 = (10.5 + ((i * 11) % 85) / 10).toFixed(2);
   const moy3 = (11 + ((i * 13) % 80) / 10).toFixed(2);
   const aRedouble = i % 4 === 0;
   return {
     id: `c${i + 1}`,
-    nom: NOMS[i],
+    nom: NOMS[i]!,
     prenom,
     cin: `${1000000 + i * 4321}`,
     email: `${prenom.toLowerCase()}.${NOMS[i].toLowerCase().replace(/\s/g, "")}@email.tn`,
@@ -261,7 +261,7 @@ export const CANDIDATS: Candidat[] = PRENOMS.map((prenom, i) => {
     l3: { anneeUniversitaire: "2022/2023", moyenne: moy3, releve: "Releve_L3.pdf" },
     diplome: {
       annee: "2023",
-      universite: UNIVERSITES[i % UNIVERSITES.length],
+      universite: UNIVERSITES[i % UNIVERSITES.length]!,
       fichier: "Diplome_Licence.pdf",
     },
     aRedouble,
@@ -284,14 +284,14 @@ export function calculerScore(candidat: Candidat, master: Master) {
 const STATUTS: Candidature["statut"][] = ["Soumise", "À réviser", "Approuvée", "Rejetée"];
 
 export const CANDIDATURES: Candidature[] = CANDIDATS.flatMap((candidat, i) => {
-  const masters = [MASTERS[i % MASTERS.length], MASTERS[(i + 3) % MASTERS.length]];
+  const masters = [MASTERS[i % MASTERS.length]!, MASTERS[(i + 3) % MASTERS.length]!];
   return masters.slice(0, 1 + (i % 2)).map((master, j) => ({
     id: `a${i + 1}-${j + 1}`,
     candidatId: candidat.id,
     masterId: master.id,
     date: `2026-07-${String(2 + ((i + j) % 26)).padStart(2, "0")}`,
     score: calculerScore(candidat, master),
-    statut: STATUTS[(i + j) % STATUTS.length],
+    statut: STATUTS[(i + j) % STATUTS.length]!,
     majLe: `2026-07-${String(5 + ((i + j) % 24)).padStart(2, "0")}`,
   }));
 });
