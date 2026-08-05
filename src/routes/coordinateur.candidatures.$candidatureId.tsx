@@ -35,7 +35,7 @@ function Detail() {
     <div className="mx-auto max-w-3xl">
       <PageHeader
         title={cand ? `${cand.prenom} ${cand.nom}` : "Dossier"}
-        subtitle={master?.nom}
+        subtitle={master?.nom ?? ""}
         action={<StatusBadge statut={c.statut} />}
       />
       <div className="space-y-6">

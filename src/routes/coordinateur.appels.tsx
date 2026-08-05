@@ -39,8 +39,8 @@ function AppelPage() {
   const total = p.l1 + p.l2 + p.l3;
 
   const publier = () => {
-    if (!nom) return toast.error("Le nom du Master est obligatoire.");
-    if (total !== 100) return toast.error("La somme des pondérations doit être égale à 100%.");
+    if (!nom) { toast.error("Le nom du Master est obligatoire."); return; }
+    if (total !== 100) { toast.error("La somme des pondérations doit être égale à 100%."); return; }
     ajouterMaster({
       id: `m-${Date.now()}`,
       nom,
