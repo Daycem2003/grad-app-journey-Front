@@ -15,6 +15,7 @@ import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as CandidatRouteImport } from './routes/candidat'
 import { Route as CandidatIndexRouteImport } from './routes/candidat.index'
 import { Route as CandidatCandidaturesRouteImport } from './routes/candidat.candidatures'
+import { Route as CandidatProfilRouteImport } from './routes/candidat.profil'
 import { Route as MastersIndexRouteImport } from './routes/masters.index'
 import { Route as MastersMasterIdRouteImport } from './routes/masters.$masterId'
 import { Route as ProfilCreerRouteImport } from './routes/profil.creer'
@@ -49,6 +50,11 @@ const CandidatCandidaturesRoute = CandidatCandidaturesRouteImport.update({
   path: '/candidatures',
   getParentRoute: () => CandidatRoute,
 } as any)
+const CandidatProfilRoute = CandidatProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => CandidatRoute,
+} as any)
 const MastersIndexRoute = MastersIndexRouteImport.update({
   id: '/masters/',
   path: '/masters/',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/profil': typeof CandidatProfilRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
   '/candidat/': typeof CandidatIndexRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/accueil': typeof AccueilRoute
   '/assistant': typeof AssistantRoute
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/profil': typeof CandidatProfilRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
   '/candidat': typeof CandidatIndexRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/profil': typeof CandidatProfilRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
   '/candidat/': typeof CandidatIndexRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/candidat'
     | '/candidat/candidatures'
+    | '/candidat/profil'
     | '/masters/$masterId'
     | '/profil/creer'
     | '/candidat/'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/accueil'
     | '/assistant'
     | '/candidat/candidatures'
+    | '/candidat/profil'
     | '/masters/$masterId'
     | '/profil/creer'
     | '/candidat'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/candidat'
     | '/candidat/candidatures'
+    | '/candidat/profil'
     | '/masters/$masterId'
     | '/profil/creer'
     | '/candidat/'
@@ -187,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CandidatCandidaturesRouteImport
       parentRoute: typeof CandidatRoute
     }
+    '/candidat/profil': {
+      id: '/candidat/profil'
+      path: '/profil'
+      fullPath: '/candidat/profil'
+      preLoaderRoute: typeof CandidatProfilRouteImport
+      parentRoute: typeof CandidatRoute
+    }
     '/masters/': {
       id: '/masters/'
       path: '/masters'
@@ -213,11 +232,13 @@ declare module '@tanstack/react-router' {
 
 interface CandidatRouteChildren {
   CandidatCandidaturesRoute: typeof CandidatCandidaturesRoute
+  CandidatProfilRoute: typeof CandidatProfilRoute
   CandidatIndexRoute: typeof CandidatIndexRoute
 }
 
 const CandidatRouteChildren: CandidatRouteChildren = {
   CandidatCandidaturesRoute: CandidatCandidaturesRoute,
+  CandidatProfilRoute: CandidatProfilRoute,
   CandidatIndexRoute: CandidatIndexRoute,
 }
 
