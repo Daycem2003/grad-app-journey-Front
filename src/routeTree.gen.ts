@@ -27,6 +27,7 @@ import { Route as MastersIndexRouteImport } from './routes/masters.index'
 import { Route as MastersMasterIdRouteImport } from './routes/masters.$masterId'
 import { Route as ProfilCreerRouteImport } from './routes/profil.creer'
 import { Route as CoordinateurCandidaturesIndexRouteImport } from './routes/coordinateur.candidatures.index'
+import { Route as CoordinateurCandidaturesCandidatureIdRouteImport } from './routes/coordinateur.candidatures.$candidatureId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -120,6 +121,12 @@ const CoordinateurCandidaturesIndexRoute =
     path: '/candidatures/',
     getParentRoute: () => CoordinateurRoute,
   } as any)
+const CoordinateurCandidaturesCandidatureIdRoute =
+  CoordinateurCandidaturesCandidatureIdRouteImport.update({
+    id: '/candidatures/$candidatureId',
+    path: '/candidatures/$candidatureId',
+    getParentRoute: () => CoordinateurRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/candidat/': typeof CandidatIndexRoute
   '/coordinateur/': typeof CoordinateurIndexRoute
   '/masters/': typeof MastersIndexRoute
+  '/coordinateur/candidatures/$candidatureId': typeof CoordinateurCandidaturesCandidatureIdRoute
   '/coordinateur/candidatures/': typeof CoordinateurCandidaturesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -157,6 +165,7 @@ export interface FileRoutesByTo {
   '/candidat': typeof CandidatIndexRoute
   '/coordinateur': typeof CoordinateurIndexRoute
   '/masters': typeof MastersIndexRoute
+  '/coordinateur/candidatures/$candidatureId': typeof CoordinateurCandidaturesCandidatureIdRoute
   '/coordinateur/candidatures': typeof CoordinateurCandidaturesIndexRoute
 }
 export interface FileRoutesById {
@@ -178,6 +187,7 @@ export interface FileRoutesById {
   '/candidat/': typeof CandidatIndexRoute
   '/coordinateur/': typeof CoordinateurIndexRoute
   '/masters/': typeof MastersIndexRoute
+  '/coordinateur/candidatures/$candidatureId': typeof CoordinateurCandidaturesCandidatureIdRoute
   '/coordinateur/candidatures/': typeof CoordinateurCandidaturesIndexRoute
 }
 export interface FileRouteTypes {
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/candidat/'
     | '/coordinateur/'
     | '/masters/'
+    | '/coordinateur/candidatures/$candidatureId'
     | '/coordinateur/candidatures/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/candidat'
     | '/coordinateur'
     | '/masters'
+    | '/coordinateur/candidatures/$candidatureId'
     | '/coordinateur/candidatures'
   id:
     | '__root__'
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/candidat/'
     | '/coordinateur/'
     | '/masters/'
+    | '/coordinateur/candidatures/$candidatureId'
     | '/coordinateur/candidatures/'
   fileRoutesById: FileRoutesById
 }
@@ -380,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoordinateurCandidaturesIndexRouteImport
       parentRoute: typeof CoordinateurRoute
     }
+    '/coordinateur/candidatures/$candidatureId': {
+      id: '/coordinateur/candidatures/$candidatureId'
+      path: '/candidatures/$candidatureId'
+      fullPath: '/coordinateur/candidatures/$candidatureId'
+      preLoaderRoute: typeof CoordinateurCandidaturesCandidatureIdRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
   }
 }
 
@@ -407,6 +427,7 @@ interface CoordinateurRouteChildren {
   CoordinateurNotificationsRoute: typeof CoordinateurNotificationsRoute
   CoordinateurRevisionRoute: typeof CoordinateurRevisionRoute
   CoordinateurIndexRoute: typeof CoordinateurIndexRoute
+  CoordinateurCandidaturesCandidatureIdRoute: typeof CoordinateurCandidaturesCandidatureIdRoute
   CoordinateurCandidaturesIndexRoute: typeof CoordinateurCandidaturesIndexRoute
 }
 
@@ -416,6 +437,8 @@ const CoordinateurRouteChildren: CoordinateurRouteChildren = {
   CoordinateurNotificationsRoute: CoordinateurNotificationsRoute,
   CoordinateurRevisionRoute: CoordinateurRevisionRoute,
   CoordinateurIndexRoute: CoordinateurIndexRoute,
+  CoordinateurCandidaturesCandidatureIdRoute:
+    CoordinateurCandidaturesCandidatureIdRoute,
   CoordinateurCandidaturesIndexRoute: CoordinateurCandidaturesIndexRoute,
 }
 
