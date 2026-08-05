@@ -13,10 +13,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccueilRouteImport } from './routes/accueil'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as CandidatRouteImport } from './routes/candidat'
+import { Route as CoordinateurRouteImport } from './routes/coordinateur'
 import { Route as CandidatIndexRouteImport } from './routes/candidat.index'
 import { Route as CandidatCandidaturesRouteImport } from './routes/candidat.candidatures'
 import { Route as CandidatNotificationsRouteImport } from './routes/candidat.notifications'
 import { Route as CandidatProfilRouteImport } from './routes/candidat.profil'
+import { Route as CoordinateurIndexRouteImport } from './routes/coordinateur.index'
+import { Route as CoordinateurMastersRouteImport } from './routes/coordinateur.masters'
+import { Route as CoordinateurNotificationsRouteImport } from './routes/coordinateur.notifications'
 import { Route as MastersIndexRouteImport } from './routes/masters.index'
 import { Route as MastersMasterIdRouteImport } from './routes/masters.$masterId'
 import { Route as ProfilCreerRouteImport } from './routes/profil.creer'
@@ -41,6 +45,11 @@ const CandidatRoute = CandidatRouteImport.update({
   path: '/candidat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoordinateurRoute = CoordinateurRouteImport.update({
+  id: '/coordinateur',
+  path: '/coordinateur',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CandidatIndexRoute = CandidatIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +70,22 @@ const CandidatProfilRoute = CandidatProfilRouteImport.update({
   path: '/profil',
   getParentRoute: () => CandidatRoute,
 } as any)
+const CoordinateurIndexRoute = CoordinateurIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CoordinateurRoute,
+} as any)
+const CoordinateurMastersRoute = CoordinateurMastersRouteImport.update({
+  id: '/masters',
+  path: '/masters',
+  getParentRoute: () => CoordinateurRoute,
+} as any)
+const CoordinateurNotificationsRoute =
+  CoordinateurNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => CoordinateurRoute,
+  } as any)
 const MastersIndexRoute = MastersIndexRouteImport.update({
   id: '/masters/',
   path: '/masters/',
@@ -82,12 +107,16 @@ export interface FileRoutesByFullPath {
   '/accueil': typeof AccueilRoute
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
+  '/coordinateur': typeof CoordinateurRouteWithChildren
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
   '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
+  '/coordinateur/masters': typeof CoordinateurMastersRoute
+  '/coordinateur/notifications': typeof CoordinateurNotificationsRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
   '/candidat/': typeof CandidatIndexRoute
+  '/coordinateur/': typeof CoordinateurIndexRoute
   '/masters/': typeof MastersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -97,9 +126,12 @@ export interface FileRoutesByTo {
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
   '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
+  '/coordinateur/masters': typeof CoordinateurMastersRoute
+  '/coordinateur/notifications': typeof CoordinateurNotificationsRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
   '/candidat': typeof CandidatIndexRoute
+  '/coordinateur': typeof CoordinateurIndexRoute
   '/masters': typeof MastersIndexRoute
 }
 export interface FileRoutesById {
@@ -108,12 +140,16 @@ export interface FileRoutesById {
   '/accueil': typeof AccueilRoute
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
+  '/coordinateur': typeof CoordinateurRouteWithChildren
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
   '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
+  '/coordinateur/masters': typeof CoordinateurMastersRoute
+  '/coordinateur/notifications': typeof CoordinateurNotificationsRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
   '/candidat/': typeof CandidatIndexRoute
+  '/coordinateur/': typeof CoordinateurIndexRoute
   '/masters/': typeof MastersIndexRoute
 }
 export interface FileRouteTypes {
@@ -123,12 +159,16 @@ export interface FileRouteTypes {
     | '/accueil'
     | '/assistant'
     | '/candidat'
+    | '/coordinateur'
     | '/candidat/candidatures'
     | '/candidat/notifications'
     | '/candidat/profil'
+    | '/coordinateur/masters'
+    | '/coordinateur/notifications'
     | '/masters/$masterId'
     | '/profil/creer'
     | '/candidat/'
+    | '/coordinateur/'
     | '/masters/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,9 +178,12 @@ export interface FileRouteTypes {
     | '/candidat/candidatures'
     | '/candidat/notifications'
     | '/candidat/profil'
+    | '/coordinateur/masters'
+    | '/coordinateur/notifications'
     | '/masters/$masterId'
     | '/profil/creer'
     | '/candidat'
+    | '/coordinateur'
     | '/masters'
   id:
     | '__root__'
@@ -148,12 +191,16 @@ export interface FileRouteTypes {
     | '/accueil'
     | '/assistant'
     | '/candidat'
+    | '/coordinateur'
     | '/candidat/candidatures'
     | '/candidat/notifications'
     | '/candidat/profil'
+    | '/coordinateur/masters'
+    | '/coordinateur/notifications'
     | '/masters/$masterId'
     | '/profil/creer'
     | '/candidat/'
+    | '/coordinateur/'
     | '/masters/'
   fileRoutesById: FileRoutesById
 }
@@ -162,6 +209,7 @@ export interface RootRouteChildren {
   AccueilRoute: typeof AccueilRoute
   AssistantRoute: typeof AssistantRoute
   CandidatRoute: typeof CandidatRouteWithChildren
+  CoordinateurRoute: typeof CoordinateurRouteWithChildren
   MastersMasterIdRoute: typeof MastersMasterIdRoute
   ProfilCreerRoute: typeof ProfilCreerRoute
   MastersIndexRoute: typeof MastersIndexRoute
@@ -197,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CandidatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/coordinateur': {
+      id: '/coordinateur'
+      path: '/coordinateur'
+      fullPath: '/coordinateur'
+      preLoaderRoute: typeof CoordinateurRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/candidat/': {
       id: '/candidat/'
       path: '/'
@@ -224,6 +279,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/candidat/profil'
       preLoaderRoute: typeof CandidatProfilRouteImport
       parentRoute: typeof CandidatRoute
+    }
+    '/coordinateur/': {
+      id: '/coordinateur/'
+      path: '/'
+      fullPath: '/coordinateur/'
+      preLoaderRoute: typeof CoordinateurIndexRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/coordinateur/masters': {
+      id: '/coordinateur/masters'
+      path: '/masters'
+      fullPath: '/coordinateur/masters'
+      preLoaderRoute: typeof CoordinateurMastersRouteImport
+      parentRoute: typeof CoordinateurRoute
+    }
+    '/coordinateur/notifications': {
+      id: '/coordinateur/notifications'
+      path: '/notifications'
+      fullPath: '/coordinateur/notifications'
+      preLoaderRoute: typeof CoordinateurNotificationsRouteImport
+      parentRoute: typeof CoordinateurRoute
     }
     '/masters/': {
       id: '/masters/'
@@ -267,11 +343,28 @@ const CandidatRouteWithChildren = CandidatRoute._addFileChildren(
   CandidatRouteChildren,
 )
 
+interface CoordinateurRouteChildren {
+  CoordinateurMastersRoute: typeof CoordinateurMastersRoute
+  CoordinateurNotificationsRoute: typeof CoordinateurNotificationsRoute
+  CoordinateurIndexRoute: typeof CoordinateurIndexRoute
+}
+
+const CoordinateurRouteChildren: CoordinateurRouteChildren = {
+  CoordinateurMastersRoute: CoordinateurMastersRoute,
+  CoordinateurNotificationsRoute: CoordinateurNotificationsRoute,
+  CoordinateurIndexRoute: CoordinateurIndexRoute,
+}
+
+const CoordinateurRouteWithChildren = CoordinateurRoute._addFileChildren(
+  CoordinateurRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccueilRoute: AccueilRoute,
   AssistantRoute: AssistantRoute,
   CandidatRoute: CandidatRouteWithChildren,
+  CoordinateurRoute: CoordinateurRouteWithChildren,
   MastersMasterIdRoute: MastersMasterIdRoute,
   ProfilCreerRoute: ProfilCreerRoute,
   MastersIndexRoute: MastersIndexRoute,
