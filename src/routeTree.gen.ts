@@ -15,6 +15,7 @@ import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as CandidatRouteImport } from './routes/candidat'
 import { Route as CandidatIndexRouteImport } from './routes/candidat.index'
 import { Route as CandidatCandidaturesRouteImport } from './routes/candidat.candidatures'
+import { Route as CandidatNotificationsRouteImport } from './routes/candidat.notifications'
 import { Route as CandidatProfilRouteImport } from './routes/candidat.profil'
 import { Route as MastersIndexRouteImport } from './routes/masters.index'
 import { Route as MastersMasterIdRouteImport } from './routes/masters.$masterId'
@@ -50,6 +51,11 @@ const CandidatCandidaturesRoute = CandidatCandidaturesRouteImport.update({
   path: '/candidatures',
   getParentRoute: () => CandidatRoute,
 } as any)
+const CandidatNotificationsRoute = CandidatNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => CandidatRoute,
+} as any)
 const CandidatProfilRoute = CandidatProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/accueil': typeof AccueilRoute
   '/assistant': typeof AssistantRoute
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
+  '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/candidat'
     | '/candidat/candidatures'
+    | '/candidat/notifications'
     | '/candidat/profil'
     | '/masters/$masterId'
     | '/profil/creer'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/accueil'
     | '/assistant'
     | '/candidat/candidatures'
+    | '/candidat/notifications'
     | '/candidat/profil'
     | '/masters/$masterId'
     | '/profil/creer'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/candidat'
     | '/candidat/candidatures'
+    | '/candidat/notifications'
     | '/candidat/profil'
     | '/masters/$masterId'
     | '/profil/creer'
@@ -199,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CandidatCandidaturesRouteImport
       parentRoute: typeof CandidatRoute
     }
+    '/candidat/notifications': {
+      id: '/candidat/notifications'
+      path: '/notifications'
+      fullPath: '/candidat/notifications'
+      preLoaderRoute: typeof CandidatNotificationsRouteImport
+      parentRoute: typeof CandidatRoute
+    }
     '/candidat/profil': {
       id: '/candidat/profil'
       path: '/profil'
@@ -232,12 +251,14 @@ declare module '@tanstack/react-router' {
 
 interface CandidatRouteChildren {
   CandidatCandidaturesRoute: typeof CandidatCandidaturesRoute
+  CandidatNotificationsRoute: typeof CandidatNotificationsRoute
   CandidatProfilRoute: typeof CandidatProfilRoute
   CandidatIndexRoute: typeof CandidatIndexRoute
 }
 
 const CandidatRouteChildren: CandidatRouteChildren = {
   CandidatCandidaturesRoute: CandidatCandidaturesRoute,
+  CandidatNotificationsRoute: CandidatNotificationsRoute,
   CandidatProfilRoute: CandidatProfilRoute,
   CandidatIndexRoute: CandidatIndexRoute,
 }
