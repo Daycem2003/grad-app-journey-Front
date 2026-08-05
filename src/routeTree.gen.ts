@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccueilRouteImport } from './routes/accueil'
+import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as MastersIndexRouteImport } from './routes/masters.index'
 import { Route as MastersMasterIdRouteImport } from './routes/masters.$masterId'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccueilRoute = AccueilRouteImport.update({
   id: '/accueil',
   path: '/accueil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MastersIndexRoute = MastersIndexRouteImport.update({
@@ -38,12 +44,14 @@ const MastersMasterIdRoute = MastersMasterIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/assistant': typeof AssistantRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/masters/': typeof MastersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/assistant': typeof AssistantRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/masters': typeof MastersIndexRoute
 }
@@ -51,20 +59,29 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/assistant': typeof AssistantRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/masters/': typeof MastersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/accueil' | '/masters/$masterId' | '/masters/'
+  fullPaths:
+    '/' | '/accueil' | '/assistant' | '/masters/$masterId' | '/masters/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accueil' | '/masters/$masterId' | '/masters'
-  id: '__root__' | '/' | '/accueil' | '/masters/$masterId' | '/masters/'
+  to: '/' | '/accueil' | '/assistant' | '/masters/$masterId' | '/masters'
+  id:
+    | '__root__'
+    | '/'
+    | '/accueil'
+    | '/assistant'
+    | '/masters/$masterId'
+    | '/masters/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccueilRoute: typeof AccueilRoute
+  AssistantRoute: typeof AssistantRoute
   MastersMasterIdRoute: typeof MastersMasterIdRoute
   MastersIndexRoute: typeof MastersIndexRoute
 }
@@ -83,6 +100,13 @@ declare module '@tanstack/react-router' {
       path: '/accueil'
       fullPath: '/accueil'
       preLoaderRoute: typeof AccueilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/masters/': {
@@ -105,6 +129,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccueilRoute: AccueilRoute,
+  AssistantRoute: AssistantRoute,
   MastersMasterIdRoute: MastersMasterIdRoute,
   MastersIndexRoute: MastersIndexRoute,
 }
