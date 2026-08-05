@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccueilRouteImport } from './routes/accueil'
 import { Route as MastersIndexRouteImport } from './routes/masters.index'
+import { Route as MastersMasterIdRouteImport } from './routes/masters.$masterId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,34 +29,43 @@ const MastersIndexRoute = MastersIndexRouteImport.update({
   path: '/masters/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MastersMasterIdRoute = MastersMasterIdRouteImport.update({
+  id: '/masters/$masterId',
+  path: '/masters/$masterId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/masters/$masterId': typeof MastersMasterIdRoute
   '/masters/': typeof MastersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/masters/$masterId': typeof MastersMasterIdRoute
   '/masters': typeof MastersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/masters/$masterId': typeof MastersMasterIdRoute
   '/masters/': typeof MastersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/accueil' | '/masters/'
+  fullPaths: '/' | '/accueil' | '/masters/$masterId' | '/masters/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/accueil' | '/masters'
-  id: '__root__' | '/' | '/accueil' | '/masters/'
+  to: '/' | '/accueil' | '/masters/$masterId' | '/masters'
+  id: '__root__' | '/' | '/accueil' | '/masters/$masterId' | '/masters/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccueilRoute: typeof AccueilRoute
+  MastersMasterIdRoute: typeof MastersMasterIdRoute
   MastersIndexRoute: typeof MastersIndexRoute
 }
 
@@ -82,12 +92,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MastersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/masters/$masterId': {
+      id: '/masters/$masterId'
+      path: '/masters/$masterId'
+      fullPath: '/masters/$masterId'
+      preLoaderRoute: typeof MastersMasterIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccueilRoute: AccueilRoute,
+  MastersMasterIdRoute: MastersMasterIdRoute,
   MastersIndexRoute: MastersIndexRoute,
 }
 export const routeTree = rootRouteImport
