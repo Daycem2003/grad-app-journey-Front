@@ -79,11 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "MasterTN — Candidatures Masters en Tunisie" },
+      {
+        name: "description",
+        content:
+          "Plateforme de consultation et de dépôt des candidatures aux Masters universitaires tunisiens.",
+      },
+      { name: "author", content: "MasterTN" },
+      { property: "og:title", content: "MasterTN — Candidatures Masters en Tunisie" },
+      {
+        property: "og:description",
+        content: "Consultez les Masters ouverts et déposez votre dossier en ligne.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
