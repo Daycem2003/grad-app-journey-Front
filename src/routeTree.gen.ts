@@ -11,9 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccueilRouteImport } from './routes/accueil'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as CandidatRouteImport } from './routes/candidat'
 import { Route as CoordinateurRouteImport } from './routes/coordinateur'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCandidatsRouteImport } from './routes/admin.candidats'
+import { Route as AdminListesRouteImport } from './routes/admin.listes'
+import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
+import { Route as AdminStatistiquesRouteImport } from './routes/admin.statistiques'
 import { Route as CandidatIndexRouteImport } from './routes/candidat.index'
 import { Route as CandidatCandidaturesRouteImport } from './routes/candidat.candidatures'
 import { Route as CandidatNotificationsRouteImport } from './routes/candidat.notifications'
@@ -39,6 +45,11 @@ const AccueilRoute = AccueilRouteImport.update({
   path: '/accueil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssistantRoute = AssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -53,6 +64,31 @@ const CoordinateurRoute = CoordinateurRouteImport.update({
   id: '/coordinateur',
   path: '/coordinateur',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCandidatsRoute = AdminCandidatsRouteImport.update({
+  id: '/candidats',
+  path: '/candidats',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminListesRoute = AdminListesRouteImport.update({
+  id: '/listes',
+  path: '/listes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStatistiquesRoute = AdminStatistiquesRouteImport.update({
+  id: '/statistiques',
+  path: '/statistiques',
+  getParentRoute: () => AdminRoute,
 } as any)
 const CandidatIndexRoute = CandidatIndexRouteImport.update({
   id: '/',
@@ -131,9 +167,14 @@ const CoordinateurCandidaturesCandidatureIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/admin': typeof AdminRouteWithChildren
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/coordinateur': typeof CoordinateurRouteWithChildren
+  '/admin/candidats': typeof AdminCandidatsRoute
+  '/admin/listes': typeof AdminListesRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/statistiques': typeof AdminStatistiquesRoute
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
   '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
@@ -143,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/coordinateur/revision': typeof CoordinateurRevisionRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
+  '/admin/': typeof AdminIndexRoute
   '/candidat/': typeof CandidatIndexRoute
   '/coordinateur/': typeof CoordinateurIndexRoute
   '/masters/': typeof MastersIndexRoute
@@ -153,6 +195,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
   '/assistant': typeof AssistantRoute
+  '/admin/candidats': typeof AdminCandidatsRoute
+  '/admin/listes': typeof AdminListesRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/statistiques': typeof AdminStatistiquesRoute
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
   '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
@@ -162,6 +208,7 @@ export interface FileRoutesByTo {
   '/coordinateur/revision': typeof CoordinateurRevisionRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
+  '/admin': typeof AdminIndexRoute
   '/candidat': typeof CandidatIndexRoute
   '/coordinateur': typeof CoordinateurIndexRoute
   '/masters': typeof MastersIndexRoute
@@ -172,9 +219,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/admin': typeof AdminRouteWithChildren
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/coordinateur': typeof CoordinateurRouteWithChildren
+  '/admin/candidats': typeof AdminCandidatsRoute
+  '/admin/listes': typeof AdminListesRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/statistiques': typeof AdminStatistiquesRoute
   '/candidat/candidatures': typeof CandidatCandidaturesRoute
   '/candidat/notifications': typeof CandidatNotificationsRoute
   '/candidat/profil': typeof CandidatProfilRoute
@@ -184,6 +236,7 @@ export interface FileRoutesById {
   '/coordinateur/revision': typeof CoordinateurRevisionRoute
   '/masters/$masterId': typeof MastersMasterIdRoute
   '/profil/creer': typeof ProfilCreerRoute
+  '/admin/': typeof AdminIndexRoute
   '/candidat/': typeof CandidatIndexRoute
   '/coordinateur/': typeof CoordinateurIndexRoute
   '/masters/': typeof MastersIndexRoute
@@ -195,9 +248,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accueil'
+    | '/admin'
     | '/assistant'
     | '/candidat'
     | '/coordinateur'
+    | '/admin/candidats'
+    | '/admin/listes'
+    | '/admin/notifications'
+    | '/admin/statistiques'
     | '/candidat/candidatures'
     | '/candidat/notifications'
     | '/candidat/profil'
@@ -207,6 +265,7 @@ export interface FileRouteTypes {
     | '/coordinateur/revision'
     | '/masters/$masterId'
     | '/profil/creer'
+    | '/admin/'
     | '/candidat/'
     | '/coordinateur/'
     | '/masters/'
@@ -217,6 +276,10 @@ export interface FileRouteTypes {
     | '/'
     | '/accueil'
     | '/assistant'
+    | '/admin/candidats'
+    | '/admin/listes'
+    | '/admin/notifications'
+    | '/admin/statistiques'
     | '/candidat/candidatures'
     | '/candidat/notifications'
     | '/candidat/profil'
@@ -226,6 +289,7 @@ export interface FileRouteTypes {
     | '/coordinateur/revision'
     | '/masters/$masterId'
     | '/profil/creer'
+    | '/admin'
     | '/candidat'
     | '/coordinateur'
     | '/masters'
@@ -235,9 +299,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/accueil'
+    | '/admin'
     | '/assistant'
     | '/candidat'
     | '/coordinateur'
+    | '/admin/candidats'
+    | '/admin/listes'
+    | '/admin/notifications'
+    | '/admin/statistiques'
     | '/candidat/candidatures'
     | '/candidat/notifications'
     | '/candidat/profil'
@@ -247,6 +316,7 @@ export interface FileRouteTypes {
     | '/coordinateur/revision'
     | '/masters/$masterId'
     | '/profil/creer'
+    | '/admin/'
     | '/candidat/'
     | '/coordinateur/'
     | '/masters/'
@@ -257,6 +327,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccueilRoute: typeof AccueilRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AssistantRoute: typeof AssistantRoute
   CandidatRoute: typeof CandidatRouteWithChildren
   CoordinateurRoute: typeof CoordinateurRouteWithChildren
@@ -281,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccueilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assistant': {
       id: '/assistant'
       path: '/assistant'
@@ -301,6 +379,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/coordinateur'
       preLoaderRoute: typeof CoordinateurRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/candidats': {
+      id: '/admin/candidats'
+      path: '/candidats'
+      fullPath: '/admin/candidats'
+      preLoaderRoute: typeof AdminCandidatsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/listes': {
+      id: '/admin/listes'
+      path: '/listes'
+      fullPath: '/admin/listes'
+      preLoaderRoute: typeof AdminListesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/statistiques': {
+      id: '/admin/statistiques'
+      path: '/statistiques'
+      fullPath: '/admin/statistiques'
+      preLoaderRoute: typeof AdminStatistiquesRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/candidat/': {
       id: '/candidat/'
@@ -403,6 +516,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminCandidatsRoute: typeof AdminCandidatsRoute
+  AdminListesRoute: typeof AdminListesRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
+  AdminStatistiquesRoute: typeof AdminStatistiquesRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCandidatsRoute: AdminCandidatsRoute,
+  AdminListesRoute: AdminListesRoute,
+  AdminNotificationsRoute: AdminNotificationsRoute,
+  AdminStatistiquesRoute: AdminStatistiquesRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface CandidatRouteChildren {
   CandidatCandidaturesRoute: typeof CandidatCandidaturesRoute
   CandidatNotificationsRoute: typeof CandidatNotificationsRoute
@@ -449,6 +580,7 @@ const CoordinateurRouteWithChildren = CoordinateurRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccueilRoute: AccueilRoute,
+  AdminRoute: AdminRouteWithChildren,
   AssistantRoute: AssistantRoute,
   CandidatRoute: CandidatRouteWithChildren,
   CoordinateurRoute: CoordinateurRouteWithChildren,
