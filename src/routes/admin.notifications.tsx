@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NotificationsSkeleton } from "@/components/shared/PageSkeletons";
 import { useStore } from "@/lib/app-store";
 
 export const Route = createFileRoute("/admin/notifications")({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/admin/notifications")({
       { property: "og:description", content: "Envoyez et consultez les annonces de la campagne." },
     ],
   }),
+  pendingComponent: NotificationsSkeleton,
   component: NotificationsAdmin,
 });
 

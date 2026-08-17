@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, FileStack, Library, Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/SpaceLayout";
 import { StatCard } from "@/components/shared/StatCard";
+import { AdminDashboardSkeleton } from "@/components/shared/PageSkeletons";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/admin/")({
       { property: "og:description", content: "Pilotage global de la campagne de candidatures." },
     ],
   }),
+  pendingComponent: AdminDashboardSkeleton,
   component: AdminDashboard,
 });
 

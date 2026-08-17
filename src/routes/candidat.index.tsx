@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, ClipboardList, FileStack, Library } from "lucide-react";
 import { PageHeader } from "@/components/layout/SpaceLayout";
+import { CandidateDashboardSkeleton } from "@/components/shared/PageSkeletons";
 import { StatCard } from "@/components/shared/StatCard";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/candidat/")({
       { property: "og:description", content: "Vos candidatures et Masters recommandés." },
     ],
   }),
+  pendingComponent: CandidateDashboardSkeleton,
   component: DashboardCandidat,
 });
 

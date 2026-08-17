@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/layout/SpaceLayout";
+import { TablePageSkeleton } from "@/components/shared/PageSkeletons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/admin/candidats")({
       { property: "og:description", content: "Recherchez un candidat par nom, CIN ou ville." },
     ],
   }),
+  pendingComponent: TablePageSkeleton,
   component: Candidats,
 });
 

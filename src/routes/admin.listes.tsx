@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/SpaceLayout";
+import { TablePageSkeleton } from "@/components/shared/PageSkeletons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/admin/listes")({
       { property: "og:description", content: "Consultez et exportez les listes d'admis." },
     ],
   }),
+  pendingComponent: TablePageSkeleton,
   component: Listes,
 });
 

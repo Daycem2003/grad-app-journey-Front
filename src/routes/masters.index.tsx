@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MapPin, Search, Users } from "lucide-react";
 import { PublicNav } from "@/components/layout/PublicNav";
+import { MastersGridSkeleton } from "@/components/shared/PageSkeletons";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/masters/")({
       },
     ],
   }),
+  pendingComponent: MastersGridSkeleton,
   component: MastersPage,
 });
 
