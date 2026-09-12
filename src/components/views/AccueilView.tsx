@@ -23,12 +23,26 @@ export function AccueilView() {
   const ouverts = masters.filter((m) => estOuvert(m.statut));
   const universitesCount = new Set(masters.map((m) => m.universite)).size;
 
-  const dashboardPath =
-    role === "candidat"
-      ? "/candidat"
-      : role === "coordinateur"
-      ? "/coordinateur/appels"
-      : "/admin/dashboard";
+  const upperRole = String(role || "").trim().toUpperCase();
+  const isCandidate = upperRole === "CANDIDATE" || upperRole === "CANDIDAT";
+  const isCoordinator = upperRole === "COORDINATOR" || upperRole === "COORDINATEUR";
+  const isAdmin = upperRole === "ADMIN" || upperRole === "ADMINISTRATEUR";
+
+  const dashboardPath = isCandidate
+    ? "/candidat"
+    : isCoordinator
+    ? "/coordinateur/appels"
+    : isAdmin
+    ? "/admin"
+    : "/";
+
+  const dashboardLabel = isCandidate
+    ? "Mon tableau de bord"
+    : isCoordinator
+    ? "Espace coordinateur"
+    : isAdmin
+    ? "Espace administrateur"
+    : "Mon espace";
 
   return (
     <div className="min-h-screen">
@@ -59,9 +73,7 @@ export function AccueilView() {
                 variant="outline"
                 className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-white/10"
               >
-                <Link to={dashboardPath}>
-                  {role === "candidat" ? "Mon tableau de bord" : "Mon espace"}
-                </Link>
+                <Link to={dashboardPath}>{dashboardLabel}</Link>
               </Button>
             ) : (
               <Button

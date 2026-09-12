@@ -15,19 +15,26 @@ export function PublicNav() {
   const { isAuthenticated, role } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const dashboardPath =
-    role === "candidat"
-      ? "/candidat"
-      : role === "coordinateur"
-      ? "/coordinateur/appels"
-      : "/admin/dashboard";
+  const upperRole = String(role || "").trim().toUpperCase();
+  const isCandidate = upperRole === "CANDIDATE" || upperRole === "CANDIDAT";
+  const isCoordinator = upperRole === "COORDINATOR" || upperRole === "COORDINATEUR";
+  const isAdmin = upperRole === "ADMIN" || upperRole === "ADMINISTRATEUR";
 
-  const dashboardLabel =
-    role === "candidat"
-      ? "Espace candidat"
-      : role === "coordinateur"
-      ? "Espace coordinateur"
-      : "Administration";
+  const dashboardPath = isCandidate
+    ? "/candidat"
+    : isCoordinator
+    ? "/coordinateur/appels"
+    : isAdmin
+    ? "/admin"
+    : "/";
+
+  const dashboardLabel = isCandidate
+    ? "Espace candidat"
+    : isCoordinator
+    ? "Espace coordinateur"
+    : isAdmin
+    ? "Espace administrateur"
+    : "Mon espace";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">

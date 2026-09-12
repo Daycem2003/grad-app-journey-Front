@@ -7,6 +7,7 @@ import {
   Library,
   UserRound,
 } from "lucide-react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SpaceLayout, type NavItem } from "@/components/layout/SpaceLayout";
 
 export const Route = createFileRoute("/candidat")({
@@ -24,8 +25,10 @@ const ITEMS: NavItem[] = [
 
 function CandidatLayout() {
   return (
-    <SpaceLayout espace="Espace Candidat" items={ITEMS}>
-      <Outlet />
-    </SpaceLayout>
+    <ProtectedRoute requiredRole="CANDIDATE">
+      <SpaceLayout espace="Espace Candidat" items={ITEMS}>
+        <Outlet />
+      </SpaceLayout>
+    </ProtectedRoute>
   );
 }

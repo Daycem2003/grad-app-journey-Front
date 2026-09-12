@@ -26,25 +26,37 @@ const PROFILS: {
 ];
 
 function SelectionProfil() {
-  const { setRole, profil, creerProfil, candidats } = useStore();
   const navigate = useNavigate();
   const { isAuthenticated, role: userRole, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && userRole) {
-      const redirectMap: Record<string, string> = { CANDIDATE: "/candidat", COORDINATOR: "/coordinateur", ADMIN: "/admin" };
+      const redirectMap: Record<string, string> = {
+        CANDIDATE: "/candidat",
+        COORDINATOR: "/coordinateur/appels",
+        ADMIN: "/admin",
+      };
       navigate({ to: redirectMap[userRole] || "/" });
     }
   }, [isAuthenticated, isLoading, userRole, navigate]);
 
   const choisir = (role: Role, to: string) => {
-    if (role === "candidat" && !profil) {
-      const demo = candidats[0];
-      if (demo) creerProfil(demo);
-    } else {
-      setRole(role);
+    if (role === "guest") {
+      navigate({ to: "/masters" });
+      return;
     }
-    navigate({ to: to as never });
+
+    if (isAuthenticated) {
+      navigate({ to: to as never });
+      return;
+    }
+
+    // Utilisateur non connecté
+    if (role === "candidat") {
+      navigate({ to: "/login" });
+    } else {
+      navigate({ to: "/login" });
+    }
   };
 
   return (

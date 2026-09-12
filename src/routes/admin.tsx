@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { BarChart3, Bell, LayoutDashboard, ListChecks, Users } from "lucide-react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SpaceLayout, type NavItem } from "@/components/layout/SpaceLayout";
 
 export const Route = createFileRoute("/admin")({ component: Layout });
@@ -14,8 +15,10 @@ const ITEMS: NavItem[] = [
 
 function Layout() {
   return (
-    <SpaceLayout espace="Espace Administrateur" items={ITEMS}>
-      <Outlet />
-    </SpaceLayout>
+    <ProtectedRoute requiredRole="ADMIN">
+      <SpaceLayout espace="Espace Administrateur" items={ITEMS}>
+        <Outlet />
+      </SpaceLayout>
+    </ProtectedRoute>
   );
 }

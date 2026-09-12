@@ -4,24 +4,46 @@ import { useEffect } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "CANDIDATE" | "COORDINATOR" | "ADMIN";
+  requiredRole?: "CANDIDATE" | "COORDINATOR" | "ADMIN" | "candidat" | "coordinateur" | "admin";
+}
+
+function normalizeRole(r?: string | null): string {
+  if (!r) return "";
+  const upper = String(r).trim().toUpperCase();
+  if (upper === "CANDIDAT" || upper === "CANDIDATE") return "CANDIDATE";
+  if (upper === "COORDINATEUR" || upper === "COORDINATOR") return "COORDINATOR";
+  if (upper === "ADMIN" || upper === "ADMINISTRATEUR") return "ADMIN";
+  return upper;
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { isAuthenticated, role, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate({ to: "/login" });
-      return;
-    }
+  const userRoleNormalized = normalizeRole(role);
+  const requiredRoleNormalized = requiredRole ? normalizeRole(requiredRole) : null;
+  const isRoleMatching = !requiredRoleNormalized || userRoleNormalized === requiredRoleNormalized;
 
-    if (!isLoading && requiredRole && role !== requiredRole) {
-      navigate({ to: "/unauthorized" });
-      return;
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        navigate({ to: "/login" });
+        return;
+      }
+
+      if (!isRoleMatching) {
+        if (userRoleNormalized === "CANDIDATE") {
+          navigate({ to: "/candidat" });
+        } else if (userRoleNormalized === "COORDINATOR") {
+          navigate({ to: "/coordinateur/appels" });
+        } else if (userRoleNormalized === "ADMIN") {
+          navigate({ to: "/admin" });
+        } else {
+          navigate({ to: "/" });
+        }
+      }
     }
-  }, [isAuthenticated, isLoading, role, requiredRole, navigate]);
+  }, [isAuthenticated, isLoading, isRoleMatching, userRoleNormalized, navigate]);
 
   if (isLoading) {
     return (
@@ -34,11 +56,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (requiredRole && role !== requiredRole) {
+  if (!isAuthenticated || !isRoleMatching) {
     return null;
   }
 
