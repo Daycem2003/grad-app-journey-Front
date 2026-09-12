@@ -37,11 +37,30 @@ export const handleApiError = async (response: Response) => {
 
     try {
       const error = await response.json();
-      errorMessage =
-        error.detail ||
-        error.message ||
-        error.error ||
-        JSON.stringify(error);
+      if (typeof error === "string") {
+        errorMessage = error;
+      } else if (Array.isArray(error)) {
+        errorMessage = error
+          .map((item) => (typeof item === "string" ? item : item?.detail || JSON.stringify(item)))
+          .join(", ");
+      } else if (typeof error === "object" && error !== null) {
+        if (typeof error.detail === "string") {
+          errorMessage = error.detail;
+        } else if (typeof error.detail === "object" && error.detail !== null) {
+          errorMessage = error.detail.detail || error.detail.message || JSON.stringify(error.detail);
+        } else if (typeof error.message === "string") {
+          errorMessage = error.message;
+        } else if (typeof error.error === "string") {
+          errorMessage = error.error;
+        } else {
+          const values = Object.values(error).flat();
+          if (values.length > 0 && typeof values[0] === "string") {
+            errorMessage = values.join(", ");
+          } else {
+            errorMessage = JSON.stringify(error);
+          }
+        }
+      }
     } catch {
       // La réponse n'est pas du JSON
     }

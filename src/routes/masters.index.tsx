@@ -120,8 +120,8 @@ function MastersPage() {
         </Card>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {resultats.map((m) => (
-            <Card key={m.id} className="flex flex-col border-border/70 shadow-none">
+          {resultats.map((m, idx) => (
+            <Card key={m.pubkey || m.id || idx} className="flex flex-col border-border/70 shadow-none">
               <CardContent className="flex flex-1 flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

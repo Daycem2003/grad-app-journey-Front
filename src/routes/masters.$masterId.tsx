@@ -236,6 +236,16 @@ function DetailMaster() {
               </CardHeader>
               <CardContent>
                 <ul className="divide-y text-sm">
+                  {master.type_licences_acceptees && master.type_licences_acceptees.length > 0 ? (
+                    <li className="flex flex-wrap justify-between gap-2 py-2.5">
+                      <span className="text-muted-foreground font-medium">
+                        Types de licence acceptés
+                      </span>
+                      <span className="font-semibold text-foreground text-right">
+                        {master.type_licences_acceptees.map((t: any) => t.intitule || t.nom).join(", ")}
+                      </span>
+                    </li>
+                  ) : null}
                   {master.eligibility_criteria && master.eligibility_criteria.length > 0 ? (
                     master.eligibility_criteria.map((c: any, i: number) => (
                       <li key={c.pubkey || i} className="flex flex-wrap justify-between gap-2 py-2.5">
