@@ -54,6 +54,7 @@ function DetailMaster() {
   const [master, setMaster] = useState<MasterDetail | null>(null);
   const [loadingMaster, setLoadingMaster] = useState(true);
   const [candidateProfile, setCandidateProfile] = useState<CandidateProfileResponse | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
   const [myApplications, setMyApplications] = useState<ApplicationDTO[]>([]);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -88,17 +89,35 @@ function DetailMaster() {
 
   // 2. Chargement du profil et des candidatures si authentifié
   useEffect(() => {
+    let active = true;
     if (isAuthenticated) {
-      candidateProfileService
-        .getMyProfile()
-        .then((p) => setCandidateProfile(p))
-        .catch(() => setCandidateProfile(null));
-
-      applicationsService
-        .getMyApplications()
-        .then((apps) => setMyApplications(apps))
-        .catch(() => setMyApplications([]));
+      setLoadingProfile(true);
+      Promise.allSettled([
+        candidateProfileService.getMyProfile(),
+        applicationsService.getMyApplications(),
+      ]).then(([profileRes, appsRes]) => {
+        if (!active) return;
+        if (profileRes.status === "fulfilled") {
+          setCandidateProfile(profileRes.value);
+        } else {
+          setCandidateProfile(null);
+        }
+        if (appsRes.status === "fulfilled") {
+          setMyApplications(appsRes.value);
+        } else {
+          setMyApplications([]);
+        }
+        setLoadingProfile(false);
+      });
+    } else {
+      setCandidateProfile(null);
+      setMyApplications([]);
+      setLoadingProfile(false);
     }
+
+    return () => {
+      active = false;
+    };
   }, [isAuthenticated]);
 
   if (loadingMaster) {
@@ -313,10 +332,15 @@ function DetailMaster() {
                 <CardTitle>Candidature</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
-                {isAuthenticated ? (
+                {loadingProfile ? (
+                  <div className="py-6 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                    <Loader2 className="size-4 animate-spin text-primary" />
+                    <span>Vérification de votre profil…</span>
+                  </div>
+                ) : isAuthenticated ? (
                   existingApp ? (
                     <div className="space-y-3">
-                      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-800 dark:text-emerald-300">
+                      <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-800 dark:text-emerald-300">
                         <p className="font-semibold flex items-center gap-1.5">
                           <CheckCircle2 className="size-4 text-emerald-600" /> Candidature soumise
                         </p>
@@ -324,7 +348,10 @@ function DetailMaster() {
                           Votre dossier a été enregistré le {new Date(existingApp.date_soumission).toLocaleDateString("fr-FR")}.
                         </p>
                         {existingApp.score !== undefined && existingApp.score !== null ? (
-                          <p className="mt-2 font-medium">Score calculé : {existingApp.score.toFixed(2)} / 20</p>
+                          <p className="mt-2 font-medium">Score : {Number(existingApp.score).toFixed(2)} / 20</p>
+                        ) : null}
+                        {existingApp.rang ? (
+                          <p className="font-semibold text-primary">Rang actuel : #{existingApp.rang}</p>
                         ) : null}
                       </div>
                       <Button className="w-full" disabled variant="secondary">

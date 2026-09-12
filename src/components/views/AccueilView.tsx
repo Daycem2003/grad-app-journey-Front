@@ -4,6 +4,7 @@ import { PublicNav } from "@/components/layout/PublicNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useStore } from "@/lib/app-store";
+import { useAuth } from "@/lib/auth-context";
 
 const ETAPES = [
   { icon: ListChecks, titre: "Consultez", texte: "Parcourez les Masters, leurs places et leurs critères." },
@@ -18,8 +19,16 @@ function estOuvert(statut: string) {
 
 export function AccueilView() {
   const { masters, mastersLoading, mastersError, periode } = useStore();
+  const { isAuthenticated, role } = useAuth();
   const ouverts = masters.filter((m) => estOuvert(m.statut));
   const universitesCount = new Set(masters.map((m) => m.universite)).size;
+
+  const dashboardPath =
+    role === "candidat"
+      ? "/candidat"
+      : role === "coordinateur"
+      ? "/coordinateur/appels"
+      : "/admin/dashboard";
 
   return (
     <div className="min-h-screen">
@@ -43,14 +52,27 @@ export function AccueilView() {
                 Consulter les Masters <ArrowRight className="size-4" />
               </Link>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-white/10"
-            >
-              <Link to="/profil/creer">Créer mon profil candidat</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-white/10"
+              >
+                <Link to={dashboardPath}>
+                  {role === "candidat" ? "Mon tableau de bord" : "Mon espace"}
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-white/10"
+              >
+                <Link to="/profil/creer">Créer mon profil candidat</Link>
+              </Button>
+            )}
           </div>
 
           {mastersError ? (
