@@ -41,7 +41,7 @@ class AuthService {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: getHeaders(undefined, undefined, false),
       body: JSON.stringify(credentials),
     });
 
@@ -52,7 +52,7 @@ class AuthService {
   async register(data: RegisterRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: getHeaders(undefined, undefined, false),
       body: JSON.stringify(data),
     });
 
@@ -63,7 +63,7 @@ class AuthService {
   async activateAccount(data: ActivateAccountRequest): Promise<MessageResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/activate`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: getHeaders(undefined, undefined, false),
       body: JSON.stringify(data),
     });
 
@@ -84,7 +84,7 @@ class AuthService {
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/token/refresh`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: getHeaders(undefined, undefined, false),
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
 
