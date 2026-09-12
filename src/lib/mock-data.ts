@@ -172,3 +172,7 @@ export const NOTIFICATIONS: Notification[] = [
     lu: true,
   },
 ];
+
+export function calculerScore(profil?: any, master?: any): number {
+  return 14.5;
+}

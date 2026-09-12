@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccueilRouteImport } from './routes/accueil'
+import { Route as ActiverCompteRouteImport } from './routes/activer-compte'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as CandidatRouteImport } from './routes/candidat'
@@ -47,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccueilRoute = AccueilRouteImport.update({
   id: '/accueil',
   path: '/accueil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActiverCompteRoute = ActiverCompteRouteImport.update({
+  id: '/activer-compte',
+  path: '/activer-compte',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -193,6 +199,7 @@ const CoordinateurMastersMasterIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/activer-compte': typeof ActiverCompteRoute
   '/admin': typeof AdminRouteWithChildren
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
@@ -224,6 +231,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/activer-compte': typeof ActiverCompteRoute
   '/assistant': typeof AssistantRoute
   '/login': typeof LoginRoute
   '/profils': typeof ProfilsRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
+  '/activer-compte': typeof ActiverCompteRoute
   '/admin': typeof AdminRouteWithChildren
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
@@ -286,6 +295,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accueil'
+    | '/activer-compte'
     | '/admin'
     | '/assistant'
     | '/candidat'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accueil'
+    | '/activer-compte'
     | '/assistant'
     | '/login'
     | '/profils'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/accueil'
+    | '/activer-compte'
     | '/admin'
     | '/assistant'
     | '/candidat'
@@ -377,6 +389,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccueilRoute: typeof AccueilRoute
+  ActiverCompteRoute: typeof ActiverCompteRoute
   AdminRoute: typeof AdminRouteWithChildren
   AssistantRoute: typeof AssistantRoute
   CandidatRoute: typeof CandidatRouteWithChildren
@@ -403,6 +416,13 @@ declare module '@tanstack/react-router' {
       path: '/accueil'
       fullPath: '/accueil'
       preLoaderRoute: typeof AccueilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activer-compte': {
+      id: '/activer-compte'
+      path: '/activer-compte'
+      fullPath: '/activer-compte'
+      preLoaderRoute: typeof ActiverCompteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -663,6 +683,7 @@ const CoordinateurRouteWithChildren = CoordinateurRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccueilRoute: AccueilRoute,
+  ActiverCompteRoute: ActiverCompteRoute,
   AdminRoute: AdminRouteWithChildren,
   AssistantRoute: AssistantRoute,
   CandidatRoute: CandidatRouteWithChildren,

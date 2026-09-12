@@ -51,7 +51,7 @@ export interface CandidateDetailDTO {
   ville: string;
   annee_naissance: number;
   nationalite: string;
-  statut: "EN_ATTENTE" | "VALIDE" | "REJETE" | string;
+  statut: "EN_ATTENTE" | "VALIDE" | "REJETE" | "A_REVISER" | string;
   created_at: string;
   diplomes?: DiplomeDTO[] | undefined;
   licence_years?: LicenceYearDTO[] | undefined;
@@ -76,9 +76,16 @@ export interface DocumentVersionDTO {
   annee_licence?: string | undefined;
   redoublement_annee?: string | undefined;
   justificatif_index?: number | undefined;
+  display_name?: string | undefined;
+  a_redeposer?: boolean | undefined;
   candidate_profile_pubkey: string;
   reviewer_email?: string | null | undefined;
   download_url?: string | null | undefined;
+}
+
+export interface CandidateDecisionResponse {
+  message: string;
+  profile: CandidateDetailDTO;
 }
 
 export const coordinatorService = {
@@ -126,6 +133,61 @@ export const coordinatorService = {
     const res = await fetch(`${API_BASE_URL}/documents/candidates/${candidatePubkey}/`, {
       headers: getHeaders(effectiveToken),
       credentials: "include",
+    });
+    await handleApiError(res);
+    return res.json();
+  },
+
+  async approveCandidature(
+    pubkey: string,
+    token?: string | undefined
+  ): Promise<CandidateDecisionResponse> {
+    const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
+    const res = await fetch(`${API_BASE_URL}/coordinator/candidatures/${pubkey}/approve`, {
+      method: "POST",
+      headers: getHeaders(effectiveToken),
+      credentials: "include",
+    });
+    await handleApiError(res);
+    return res.json();
+  },
+
+  async rejectCandidature(
+    pubkey: string,
+    motif?: string | undefined,
+    token?: string | undefined
+  ): Promise<CandidateDecisionResponse> {
+    const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
+    const res = await fetch(`${API_BASE_URL}/coordinator/candidatures/${pubkey}/reject`, {
+      method: "POST",
+      headers: getHeaders(effectiveToken),
+      credentials: "include",
+      body: JSON.stringify({ motif: motif || null }),
+    });
+    await handleApiError(res);
+    return res.json();
+  },
+
+  async requestRevision(
+    pubkey: string,
+    payload:
+      | { message?: string | undefined; documents_a_redeposer?: string[] | undefined }
+      | string,
+    token?: string | undefined
+  ): Promise<CandidateDecisionResponse> {
+    const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
+    const bodyObj =
+      typeof payload === "string"
+        ? { message: payload, documents_a_redeposer: [] }
+        : {
+            message: payload.message || "",
+            documents_a_redeposer: payload.documents_a_redeposer || [],
+          };
+    const res = await fetch(`${API_BASE_URL}/coordinator/candidatures/${pubkey}/request-revision`, {
+      method: "POST",
+      headers: getHeaders(effectiveToken),
+      credentials: "include",
+      body: JSON.stringify(bodyObj),
     });
     await handleApiError(res);
     return res.json();

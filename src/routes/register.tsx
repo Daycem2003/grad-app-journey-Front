@@ -57,10 +57,11 @@ function RegisterPage() {
         ADMIN: "/admin",
       };
 
-      const targetRoute = role ? redirectMap[role] : "/accueil";
+      const targetRoute: string = (role && redirectMap[role]) ? redirectMap[role] : "/accueil";
       navigate({ to: targetRoute });
     }
   }, [isAuthenticated, isLoading, role, navigate]);
+
 
   const onSubmit = async (values: RegisterFormValues) => {
     setError(null);

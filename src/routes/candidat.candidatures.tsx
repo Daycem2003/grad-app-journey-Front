@@ -65,7 +65,7 @@ function MesCandidatures() {
                     <TableCell className="max-w-xs">
                       <span className="block truncate font-medium">{master?.nom}</span>
                       <span className="block truncate text-xs text-muted-foreground">
-                        {master?.etablissement}
+                        {master?.universite || (master as any)?.etablissement || "—"}
                       </span>
                     </TableCell>
                     <TableCell>{new Date(c.date).toLocaleDateString("fr-FR")}</TableCell>
@@ -73,14 +73,17 @@ function MesCandidatures() {
                     <TableCell>
                       <StatusBadge statut={c.statut} />
                     </TableCell>
+
+
                     <TableCell>{new Date(c.majLe).toLocaleDateString("fr-FR")}</TableCell>
                     <TableCell className="text-right">
                       {master ? (
                         <Button asChild size="sm" variant="ghost">
-                          <Link to="/masters/$masterId" params={{ masterId: master.id }}>
+                          <Link to="/masters/$masterId" params={{ masterId: String(master.id ?? master.pubkey) }}>
                             Consulter
                           </Link>
                         </Button>
+
                       ) : null}
                     </TableCell>
                   </TableRow>

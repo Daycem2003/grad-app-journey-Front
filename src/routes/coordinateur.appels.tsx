@@ -291,10 +291,12 @@ const [specialite, setSpecialite] = useState("");
             ville: premier?.ville ?? "Tunis",
             domaine,
             discipline,
+            specialite: specialite || discipline || domaine,
             nombre_places: Number(places) || 0,
             date_debut: debut,
             date_fin: fin,
           },
+
           requiredDocuments: ["RELEVE_NOTES_L1_L2_L3", "DIPLOME_LICENCE"], // TODO: confirmer les valeurs exactes attendues par le backend
           scoreCriteria: [
             { critere: "moyenne_l1", poids: p.l1 / 100 }, // TODO: confirmer si `poids` attend une fraction (0-1) ou un pourcentage (0-100)

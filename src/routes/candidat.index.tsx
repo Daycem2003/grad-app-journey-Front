@@ -76,13 +76,14 @@ function DashboardCandidat() {
               </div>
               <p className="mt-3 font-display text-lg leading-snug">{m.nom}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {m.etablissement} · {m.places} places
+                {m.universite || m.ville || "—"} · {m.nombre_places ?? 0} places
               </p>
               <Button asChild variant="outline" className="mt-4 w-full">
-                <Link to="/masters/$masterId" params={{ masterId: m.id }}>
+                <Link to="/masters/$masterId" params={{ masterId: String(m.id ?? m.pubkey) }}>
                   Voir & postuler
                 </Link>
               </Button>
+
             </CardContent>
           </Card>
         ))}

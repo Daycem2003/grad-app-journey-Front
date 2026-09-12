@@ -59,16 +59,18 @@ function MastersPage() {
   );
 
   const resultats = masters.filter((m) => {
-    const texte = `${m.nom} ${m.etablissement} ${m.universite} ${m.ville} ${m.domaine}`.toLowerCase();
+    const texte = `${m.nom} ${m.universite || ""} ${m.ville || ""} ${m.domaine || ""}`.toLowerCase();
+    const places = m.nombre_places ?? (m as any).places ?? 0;
     return (
       texte.includes(q.toLowerCase()) &&
       (universite === TOUS || m.universite === universite) &&
       (ville === TOUS || m.ville === ville) &&
       (domaine === TOUS || m.domaine === domaine) &&
       (statut === TOUS || m.statut === statut) &&
-      m.places >= placesMin
+      places >= placesMin
     );
   });
+
 
   return (
     <div className="min-h-screen">
@@ -128,31 +130,31 @@ function MastersPage() {
                   <StatusBadge statut={m.statut} />
                 </div>
                 <h2 className="mt-3 font-display text-lg leading-snug">{m.nom}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{m.universite}</p>
-                <p className="text-sm text-muted-foreground">{m.etablissement}</p>
-                <p className="mt-3 line-clamp-2 text-sm">{m.descriptionCourte}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{m.universite || m.ville}</p>
+                <p className="mt-3 line-clamp-2 text-sm">{(m as any).description || (m as any).descriptionCourte || "—"}</p>
 
                 <dl className="mt-4 space-y-1.5 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <MapPin className="size-4 shrink-0" /> {m.ville}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="size-4 shrink-0" /> {m.places} places
+                    <Users className="size-4 shrink-0" /> {m.nombre_places ?? (m as any).places ?? 0} places
                   </div>
                   <div className="text-xs">
-                    Du {new Date(m.dateDebut).toLocaleDateString("fr-FR")} au{" "}
-                    {new Date(m.dateFin).toLocaleDateString("fr-FR")}
+                    Du {new Date(m.date_debut || (m as any).dateDebut || Date.now()).toLocaleDateString("fr-FR")} au{" "}
+                    {new Date(m.date_fin || (m as any).dateFin || Date.now()).toLocaleDateString("fr-FR")}
                   </div>
                 </dl>
 
                 <Button asChild variant="outline" className="mt-5 w-full">
-                  <Link to="/masters/$masterId" params={{ masterId: m.id }}>
+                  <Link to="/masters/$masterId" params={{ masterId: String(m.id ?? m.pubkey) }}>
                     Voir les détails
                   </Link>
                 </Button>
               </CardContent>
             </Card>
           ))}
+
         </div>
 
         {resultats.length === 0 ? (

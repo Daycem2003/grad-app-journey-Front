@@ -1,5 +1,4 @@
 import type { ChatMessage } from "./types";
-import { MASTERS } from "./mock-data";
 
 /**
  * Service d'assistant conversationnel (mocké).
@@ -17,12 +16,7 @@ function reponseMockee(question: string): string {
   const q = question.toLowerCase();
 
   if (q.includes("disponible") || q.includes("quels masters")) {
-    const ouverts = MASTERS.filter((m) => m.statut === "Ouvert");
-    return [
-      `${ouverts.length} Masters sont actuellement ouverts aux candidatures :`,
-      ...ouverts.map((m) => `• ${m.nom} — ${m.etablissement} (${m.ville}), ${m.places} places`),
-      "Consultez la page « Masters » pour voir tous les détails.",
-    ].join("\n");
+    return "Consultez la page « Masters » pour découvrir l'ensemble des formations actuellement ouvertes aux candidatures ainsi que leurs conditions d'accès.";
   }
   if (q.includes("document")) {
     return [

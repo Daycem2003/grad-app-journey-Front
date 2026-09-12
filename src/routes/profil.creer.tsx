@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, FileText, Info } from "lucide-react";
 import { PublicNav } from "@/components/layout/PublicNav";
 import { FileUpload, MultiFileUpload } from "@/components/shared/FileUpload";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { mastersService, type Master } from "@/services/masters-service";
 import { referenceDataService, type ReferenceDataItem } from "@/services/reference-data-service";
 import { typeLicenceService, type TypeLicenceRef } from "@/services/type-licence-service";
-import { candidateProfileService } from "@/services/candidate-profile-service";
+import { candidateProfileService, type CandidateDocumentSlotDTO } from "@/services/candidate-profile-service";
 import { academicRecordService } from "@/services/academic-record-service";
 import { uploadDocument, type SlotType } from "@/services/documents-service";
 
@@ -57,24 +57,35 @@ const nommerFichier = (nom: string, prenom: string, file: File, ...segments: str
 const codeAnneeRedoublement = (annee: RedoublementForm["annee"]): string =>
   ({ "Licence 1": "A1", "Licence 2": "A2", "Licence 3": "A3" })[annee];
 
+interface ProfilCreerSearchParams {
+  token?: string | undefined;
+}
+
 export const Route = createFileRoute("/profil/creer")({
+  validateSearch: (search: Record<string, unknown>): ProfilCreerSearchParams => {
+    return {
+      token: typeof search["token"] === "string" ? search["token"] : undefined,
+    };
+  },
   head: () => ({
+
     meta: [
-      { title: "Créer mon profil candidat — MasterTN" },
+      { title: "Créer / Réviser mon profil candidat — MasterTN" },
       {
         name: "description",
         content:
           "Renseignez vos informations personnelles, vos moyennes de Licence et vos justificatifs pour candidater aux Masters.",
       },
-      { property: "og:title", content: "Créer mon profil candidat — MasterTN" },
+      { property: "og:title", content: "Profil candidat — MasterTN" },
       {
         property: "og:description",
-        content: "Formulaire guidé en quatre étapes pour constituer votre dossier.",
+        content: "Formulaire guidé pour constituer ou mettre à jour votre dossier.",
       },
     ],
   }),
   component: CreationProfil,
 });
+
 
 // ASSOMPTION : FileUpload/MultiFileUpload retournent désormais l'objet File
 // réel sélectionné par l'utilisateur (nécessaire pour l'upload multipart),
@@ -119,8 +130,88 @@ const licenceVide = (typeLicence: TypeLicenceRef): LicenceObtenueForm => ({
   diplome: null,
 });
 
+export interface LicenceGapAnalysis {
+  hasGap: boolean;
+  isOrderInvalid: boolean;
+  message?: string;
+}
+
+export const parseAnneeDebut = (anneeStr: string): number | null => {
+  if (!anneeStr) return null;
+  const match = anneeStr.match(/^(\d{4})/);
+  if (!match) return null;
+  const val = parseInt(match[1], 10);
+  return isNaN(val) ? null : val;
+};
+
+export const analyserAnneesLicence = (licence: LicenceObtenueForm): LicenceGapAnalysis => {
+  const y1 = parseAnneeDebut(licence.a1.anneeUniversitaire);
+  const y2 = parseAnneeDebut(licence.a2.anneeUniversitaire);
+  const y3 = parseAnneeDebut(licence.a3.anneeUniversitaire);
+
+  if (y1 !== null && y2 !== null) {
+    if (y2 <= y1) {
+      return {
+        hasGap: true,
+        isOrderInvalid: true,
+        message: `L'année de Licence A2 (${licence.a2.anneeUniversitaire}) doit être postérieure à l'année A1 (${licence.a1.anneeUniversitaire}).`,
+      };
+    }
+    if (y2 - y1 > 1) {
+      return {
+        hasGap: true,
+        isOrderInvalid: false,
+        message: `Écart de ${y2 - y1 - 1} an(s) entre A1 (${licence.a1.anneeUniversitaire}) et A2 (${licence.a2.anneeUniversitaire}).`,
+      };
+    }
+  }
+
+  if (y2 !== null && y3 !== null) {
+    if (y3 <= y2) {
+      return {
+        hasGap: true,
+        isOrderInvalid: true,
+        message: `L'année de Licence A3 (${licence.a3.anneeUniversitaire}) doit être postérieure à l'année A2 (${licence.a2.anneeUniversitaire}).`,
+      };
+    }
+    if (y3 - y2 > 1) {
+      return {
+        hasGap: true,
+        isOrderInvalid: false,
+        message: `Écart de ${y3 - y2 - 1} an(s) entre A2 (${licence.a2.anneeUniversitaire}) et A3 (${licence.a3.anneeUniversitaire}).`,
+      };
+    }
+  }
+
+  if (y1 !== null && y3 !== null && y2 === null) {
+    if (y3 <= y1) {
+      return {
+        hasGap: true,
+        isOrderInvalid: true,
+        message: `L'année de Licence A3 (${licence.a3.anneeUniversitaire}) doit être postérieure à l'année A1 (${licence.a1.anneeUniversitaire}).`,
+      };
+    }
+    if (y3 - y1 > 2) {
+      return {
+        hasGap: true,
+        isOrderInvalid: false,
+        message: `Écart détecté entre A1 (${licence.a1.anneeUniversitaire}) et A3 (${licence.a3.anneeUniversitaire}).`,
+      };
+    }
+  }
+
+  return { hasGap: false, isOrderInvalid: false };
+};
+
 function CreationProfil() {
   const navigate = useNavigate();
+  const search = useSearch({ from: "/profil/creer" });
+  const revisionToken = search.token;
+  const [existingToken, setExistingToken] = useState<string | null>(revisionToken ?? null);
+  const [isRevisionMode, setIsRevisionMode] = useState<boolean>(Boolean(revisionToken));
+  const [revisionMessage, setRevisionMessage] = useState<string | null>(null);
+  const [candidateDocuments, setCandidateDocuments] = useState<CandidateDocumentSlotDTO[]>([]);
+
   const [etape, setEtape] = useState(0);
   const [erreurs, setErreurs] = useState<string[]>([]);
   const [soumissionEnCours, setSoumissionEnCours] = useState(false);
@@ -146,6 +237,120 @@ function CreationProfil() {
       releve: null as File | null,
     },
   });
+
+  // Chargement des données existantes en mode révision
+  useEffect(() => {
+    if (revisionToken) {
+      candidateProfileService
+        .getProfileByOnboardingToken(revisionToken)
+        .then((profile) => {
+          setExistingToken(profile.onboarding_token || revisionToken);
+          setIsRevisionMode(true);
+          setRevisionMessage(profile.revision_message || null);
+          setCandidateDocuments(profile.documents || []);
+
+          const prefilledLicences: LicenceObtenueForm[] = [];
+          if (profile.diplomes && profile.diplomes.length > 0) {
+            profile.diplomes.forEach((d: any) => {
+              const typeLicencePubkey = d.type_licence?.pubkey || "";
+              const intitule = d.type_licence?.intitule || "Licence";
+
+              const ly1 = (profile.licence_years || []).find(
+                (ly: any) =>
+                  (ly.type_licence_pubkey === typeLicencePubkey || !ly.type_licence_pubkey) && ly.annee === 1,
+              );
+              const ly2 = (profile.licence_years || []).find(
+                (ly: any) =>
+                  (ly.type_licence_pubkey === typeLicencePubkey || !ly.type_licence_pubkey) && ly.annee === 2,
+              );
+              const ly3 = (profile.licence_years || []).find(
+                (ly: any) =>
+                  (ly.type_licence_pubkey === typeLicencePubkey || !ly.type_licence_pubkey) && ly.annee === 3,
+              );
+
+              const m1 = ly1?.moyenne !== undefined && ly1?.moyenne !== null ? Number(ly1.moyenne) : null;
+              const m2 = ly2?.moyenne !== undefined && ly2?.moyenne !== null ? Number(ly2.moyenne) : null;
+              const m3 = ly3?.moyenne !== undefined && ly3?.moyenne !== null ? Number(ly3.moyenne) : null;
+              const generalMoy = m1 !== null && m2 !== null && m3 !== null ? ((m1 + m2 + m3) / 3).toFixed(2) : "";
+
+              prefilledLicences.push({
+                nom: intitule,
+                typeLicencePubkey,
+                universite: d.universite || "",
+                a1: {
+                  anneeUniversitaire: ly1?.annee_universitaire || "",
+                  moyenne: m1 !== null ? String(m1) : "",
+                  releve: null,
+                },
+                a2: {
+                  anneeUniversitaire: ly2?.annee_universitaire || "",
+                  moyenne: m2 !== null ? String(m2) : "",
+                  releve: null,
+                },
+                a3: {
+                  anneeUniversitaire: ly3?.annee_universitaire || "",
+                  moyenne: m3 !== null ? String(m3) : "",
+                  releve: null,
+                },
+                moyenneGenerale: generalMoy,
+                diplome: null,
+              });
+            });
+          }
+
+          const hasRedouble = Boolean(profile.redoublement?.a_redouble);
+          const prefilledRedoublements: RedoublementForm[] = (profile.redoublement?.redoublement_years || []).map(
+            (ry: any) => ({
+              annee: ry.annee,
+              justificatifs: [],
+            }),
+          );
+
+          const hasMaster1 = Boolean(profile.master1_year);
+          const prefilledM1 = profile.master1_year
+            ? {
+                master: profile.master1_year.master_pubkey || "",
+                institut: profile.master1_year.etablissement || "",
+                anneeUniversitaire: profile.master1_year.annee_universitaire || "",
+                moyenne:
+                  profile.master1_year.moyenne !== undefined && profile.master1_year.moyenne !== null
+                    ? String(profile.master1_year.moyenne)
+                    : "",
+                releve: null,
+              }
+            : {
+                master: "",
+                institut: "",
+                anneeUniversitaire: "",
+                moyenne: "",
+                releve: null,
+              };
+
+          setForm((f) => ({
+            ...f,
+            nom: profile.nom || f.nom,
+            prenom: profile.prenom || f.prenom,
+            cin: profile.cin || f.cin,
+            email: profile.email || f.email,
+            telephone: profile.telephone || f.telephone,
+            ville: profile.ville || f.ville,
+            nationalite: profile.nationalite || f.nationalite,
+            anneeNaissance: profile.annee_naissance ? String(profile.annee_naissance) : f.anneeNaissance,
+            licences: prefilledLicences.length > 0 ? prefilledLicences : f.licences,
+            aRedouble: hasRedouble ? "oui" : "non",
+            redoublements: prefilledRedoublements.length > 0 ? prefilledRedoublements : f.redoublements,
+            aFaitPremiereAnneeMaster: hasMaster1 ? "oui" : "non",
+            premiereAnneeMaster: hasMaster1 ? prefilledM1 : f.premiereAnneeMaster,
+          }));
+          toast.info("Dossier chargé en mode révision. Modifiez vos informations puis soumettez.");
+        })
+        .catch((err) => {
+          console.error("Erreur de chargement du profil en révision:", err);
+          toast.error("Impossible de charger les données du profil en révision.");
+        });
+    }
+  }, [revisionToken]);
+
 
   const [villes, setVilles] = useState<ReferenceDataItem[]>([]);
   const [universites, setUniversites] = useState<ReferenceDataItem[]>([]);
@@ -259,6 +464,53 @@ function CreationProfil() {
         : f.redoublements.filter((r) => r.annee !== annee),
     }));
 
+  const anneesCodes: Array<"A1" | "A2" | "A3"> = ["A1", "A2", "A3"];
+
+  const findCandidateSlot = (
+    slotType: SlotType,
+    filters?: {
+      domaine?: string;
+      anneeLicence?: "A1" | "A2" | "A3";
+      redoublementAnnee?: string;
+      justificatifIndex?: number;
+    },
+  ) => {
+    return candidateDocuments.find((doc) => {
+      if (doc.slot_type !== slotType) return false;
+      if (filters?.domaine !== undefined && (doc.domaine || "") !== (filters.domaine || "")) return false;
+      if (filters?.anneeLicence !== undefined && doc.annee_licence !== filters.anneeLicence) return false;
+      if (filters?.redoublementAnnee !== undefined && doc.redoublement_annee !== filters.redoublementAnnee) return false;
+      if (filters?.justificatifIndex !== undefined && doc.justificatif_index !== filters.justificatifIndex) return false;
+      return true;
+    });
+  };
+
+  const isSlotARedeposer = (
+    slotType: SlotType,
+    filters?: {
+      domaine?: string;
+      anneeLicence?: "A1" | "A2" | "A3";
+      redoublementAnnee?: string;
+      justificatifIndex?: number;
+    },
+  ) => {
+    const slot = findCandidateSlot(slotType, filters);
+    return Boolean(slot?.a_redeposer);
+  };
+
+  const isSlotConserve = (
+    slotType: SlotType,
+    filters?: {
+      domaine?: string;
+      anneeLicence?: "A1" | "A2" | "A3";
+      redoublementAnnee?: string;
+      justificatifIndex?: number;
+    },
+  ) => {
+    const slot = findCandidateSlot(slotType, filters);
+    return Boolean(slot && !slot.a_redeposer);
+  };
+
   const valider = () => {
     const e: string[] = [];
     if (!form.nom || !form.prenom) e.push("Le nom et le prénom sont obligatoires.");
@@ -270,29 +522,160 @@ function CreationProfil() {
     if (!form.anneeNaissance) e.push("L'année de naissance est obligatoire.");
     if (form.licences.length === 0) e.push("Sélectionnez au moins une licence obtenue.");
     form.licences.forEach((licence) => {
+      const analyse = analyserAnneesLicence(licence);
+      if (analyse.isOrderInvalid) {
+        e.push(`L'ordre chronologique des années pour la Licence ${licence.nom} est invalide : ${analyse.message}`);
+      } else if (analyse.hasGap && form.aRedouble !== "oui") {
+        e.push(
+          `Les années universitaires de la Licence ${licence.nom} ne sont pas consécutives. Vous devez déclarer un redoublement à l'étape « Diplôme & redoublement » ou corriger les années saisies.`,
+        );
+      }
       if (!licence.universite) e.push(`L'université de la licence ${licence.nom} est obligatoire.`);
       (["a1", "a2", "a3"] as const).forEach((cle, i) => {
         if (!licence[cle].anneeUniversitaire) e.push(`L'année de ${licence.nom} A${i + 1} est obligatoire.`);
         if (!licence[cle].moyenne) e.push(`La moyenne de ${licence.nom} A${i + 1} est obligatoire.`);
-        if (!licence[cle].releve) e.push(`Le relevé de ${licence.nom} A${i + 1} est manquant.`);
+        
+        const redeposer = isSlotARedeposer("RELEVE_LICENCE", { domaine: licence.nom, anneeLicence: anneesCodes[i] });
+        const conserve = isSlotConserve("RELEVE_LICENCE", { domaine: licence.nom, anneeLicence: anneesCodes[i] });
+        if (!licence[cle].releve) {
+          if (!isRevisionMode) {
+            e.push(`Le relevé de ${licence.nom} A${i + 1} est manquant.`);
+          } else if (redeposer) {
+            e.push(`Le relevé de ${licence.nom} A${i + 1} doit être redéposé.`);
+          } else if (!conserve) {
+            e.push(`Le relevé de ${licence.nom} A${i + 1} est manquant.`);
+          }
+        }
       });
       if (!licence.moyenneGenerale) e.push(`La moyenne générale de ${licence.nom} est obligatoire.`);
-      if (!licence.diplome) e.push(`Le diplôme de ${licence.nom} est manquant.`);
+      
+      const diplomeRedeposer = isSlotARedeposer("DIPLOME_LICENCE", { domaine: licence.nom });
+      const diplomeConserve = isSlotConserve("DIPLOME_LICENCE", { domaine: licence.nom });
+      if (!licence.diplome) {
+        if (!isRevisionMode) {
+          e.push(`Le diplôme de ${licence.nom} est manquant.`);
+        } else if (diplomeRedeposer) {
+          e.push(`Le diplôme de ${licence.nom} doit être redéposé.`);
+        } else if (!diplomeConserve) {
+          e.push(`Le diplôme de ${licence.nom} est manquant.`);
+        }
+      }
     });
-    if (
-      form.aFaitPremiereAnneeMaster === "oui" &&
-      (!form.premiereAnneeMaster.master ||
-        !form.premiereAnneeMaster.institut ||
-        !form.premiereAnneeMaster.anneeUniversitaire ||
-        !form.premiereAnneeMaster.moyenne ||
-        !form.premiereAnneeMaster.releve)
-    )
-      e.push("Les informations et le relevé de la première année de master sont obligatoires.");
-    form.redoublements.forEach((r) => {
-      if (r.justificatifs.length === 0) e.push(`Aucun justificatif fourni pour le redoublement de ${r.annee}.`);
-    });
+
+    if (form.aFaitPremiereAnneeMaster === "oui") {
+      if (!form.premiereAnneeMaster.master) e.push("Le master suivi en M1 est obligatoire.");
+      if (!form.premiereAnneeMaster.institut) e.push("L'institut de réalisation du M1 est obligatoire.");
+      if (!form.premiereAnneeMaster.anneeUniversitaire) e.push("L'année universitaire du M1 est obligatoire.");
+      if (!form.premiereAnneeMaster.moyenne) e.push("La moyenne du M1 est obligatoire.");
+
+      const m1Redeposer = isSlotARedeposer("RELEVE_M1");
+      const m1Conserve = isSlotConserve("RELEVE_M1");
+      if (!form.premiereAnneeMaster.releve) {
+        if (!isRevisionMode) {
+          e.push("Le relevé de notes de première année de master est manquant.");
+        } else if (m1Redeposer) {
+          e.push("Le relevé de notes de master 1 doit être redéposé.");
+        } else if (!m1Conserve) {
+          e.push("Le relevé de notes de master 1 est manquant.");
+        }
+      }
+    }
+
+    if (form.aRedouble === "oui") {
+      form.redoublements.forEach((r) => {
+        const hasRedeposerSlot = candidateDocuments.some(
+          (d) => d.slot_type === "JUSTIFICATIF_REDOUBLEMENT" && d.redoublement_annee === r.annee && d.a_redeposer,
+        );
+        const hasConservedSlot = candidateDocuments.some(
+          (d) => d.slot_type === "JUSTIFICATIF_REDOUBLEMENT" && d.redoublement_annee === r.annee && !d.a_redeposer,
+        );
+        if (r.justificatifs.length === 0) {
+          if (!isRevisionMode) {
+            e.push(`Aucun justificatif fourni pour le redoublement de ${r.annee}.`);
+          } else if (hasRedeposerSlot) {
+            e.push(`Le justificatif de redoublement pour ${r.annee} doit être redéposé.`);
+          } else if (!hasConservedSlot) {
+            e.push(`Aucun justificatif fourni pour le redoublement de ${r.annee}.`);
+          }
+        }
+      });
+    }
+
     setErreurs(e);
     return e.length === 0;
+  };
+
+  const passerEtapeSuivante = () => {
+    if (etape === 0) {
+      if (!form.nom.trim() || !form.prenom.trim()) {
+        toast.error("Le nom et le prénom sont obligatoires.");
+        return;
+      }
+      if (!/^\d{8}$/.test(form.cin.trim())) {
+        toast.error("Le CIN doit comporter exactement 8 chiffres.");
+        return;
+      }
+      if (!form.email.trim() || !form.email.includes("@")) {
+        toast.error("Veuillez saisir une adresse email valide.");
+        return;
+      }
+      if (!form.telephone.trim()) {
+        toast.error("Le numéro de téléphone est obligatoire.");
+        return;
+      }
+      if (!form.ville) {
+        toast.error("Veuillez sélectionner votre ville.");
+        return;
+      }
+      if (!form.nationalite) {
+        toast.error("Veuillez sélectionner votre nationalité.");
+        return;
+      }
+      if (!form.anneeNaissance) {
+        toast.error("L'année de naissance est obligatoire.");
+        return;
+      }
+    } else if (etape === 1) {
+      if (form.licences.length === 0) {
+        toast.error("Veuillez sélectionner au moins une licence obtenue.");
+        return;
+      }
+      for (const licence of form.licences) {
+        if (!licence.universite) {
+          toast.error(`Veuillez sélectionner l'université pour la Licence en ${licence.nom}.`);
+          return;
+        }
+        for (const [cle, idx] of [["a1", 1], ["a2", 2], ["a3", 3]] as const) {
+          if (!licence[cle].anneeUniversitaire) {
+            toast.error(`Veuillez renseigner l'année universitaire pour Licence ${licence.nom} A${idx}.`);
+            return;
+          }
+          if (!licence[cle].moyenne) {
+            toast.error(`Veuillez renseigner la moyenne pour Licence ${licence.nom} A${idx}.`);
+            return;
+          }
+        }
+        const analyse = analyserAnneesLicence(licence);
+        if (analyse.isOrderInvalid) {
+          toast.error(`Chronologie invalide pour la Licence en ${licence.nom} : ${analyse.message}`);
+          return;
+        }
+      }
+    } else if (etape === 2) {
+      const hasUnresolvedGap = form.licences.some((lic) => analyserAnneesLicence(lic).hasGap && form.aRedouble !== "oui");
+      if (hasUnresolvedGap) {
+        toast.error(
+          "Vos années de Licence ne sont pas consécutives. Vous devez déclarer votre redoublement ou corriger les années.",
+        );
+        return;
+      }
+      if (form.aRedouble === "oui" && form.redoublements.length === 0) {
+        toast.error("Veuillez sélectionner au moins une année redoublée.");
+        return;
+      }
+    }
+
+    setEtape((s) => Math.min(ETAPES.length - 1, s + 1));
   };
 
   const soumettre = async () => {
@@ -303,21 +686,39 @@ function CreationProfil() {
 
     setSoumissionEnCours(true);
     try {
-      // 1. Création du profil candidat de base
-      const profilCree = await candidateProfileService.createProfile({
-        nom: form.nom,
-        prenom: form.prenom,
-        cin: form.cin,
-        email: form.email,
-        telephone: form.telephone,
-        ville: form.ville,
-        nationalite: form.nationalite,
-        annee_naissance: Number(form.anneeNaissance),
-      });
+      let onboardingToken = existingToken;
 
-      const onboardingToken = profilCree.onboarding_token;
+      if (!onboardingToken) {
+        // 1. Création du profil candidat de base
+        const profilCree = await candidateProfileService.createProfile({
+          nom: form.nom,
+          prenom: form.prenom,
+          cin: form.cin,
+          email: form.email,
+          telephone: form.telephone,
+          ville: form.ville,
+          nationalite: form.nationalite,
+          annee_naissance: Number(form.anneeNaissance),
+        });
+        onboardingToken = profilCree.onboarding_token ?? null;
+      } else {
+        // Mise à jour du profil en révision
+        await candidateProfileService.updateProfile(
+          {
+            telephone: form.telephone,
+            ville: form.ville,
+            nationalite: form.nationalite,
+          },
+          onboardingToken,
+        );
+      }
+
+      if (!onboardingToken) {
+        throw new Error("Jeton d'onboarding introuvable. Veuillez recommencer.");
+      }
 
       // 2. Licences : 3 années + 1 diplôme par licence sélectionnée
+
       for (const licence of form.licences) {
         const annees: Array<["a1" | "a2" | "a3", number]> = [
           ["a1", 1],
@@ -347,7 +748,9 @@ function CreationProfil() {
 
       // 3. Première année de master (optionnelle)
       if (form.aFaitPremiereAnneeMaster === "oui") {
-        const masterChoisi = mastersList.find((m) => m.nom === form.premiereAnneeMaster.master);
+        const masterChoisi = mastersList.find(
+          (m) => m.nom === form.premiereAnneeMaster.master || m.pubkey === form.premiereAnneeMaster.master
+        );
         await academicRecordService.setMaster1Year(
           {
             annee_universitaire: form.premiereAnneeMaster.anneeUniversitaire,
@@ -446,14 +849,18 @@ function CreationProfil() {
 
       if (echecs.length > 0) {
         toast.error(
-          `Profil créé, mais ${echecs.length} document(s) n'ont pas pu être envoyés. Vous pourrez les renvoyer depuis votre espace candidat.`,
+          `Dossier enregistré, mais ${echecs.length} document(s) n'ont pas pu être envoyés. Vous pourrez les renvoyer depuis votre espace candidat.`,
         );
       } else {
-        toast.success("Profil candidat créé avec succès. Il sera examiné par un coordinateur.");
+        toast.success(
+          isRevisionMode
+            ? "Votre dossier a été mis à jour et renvoyé pour révision."
+            : "Profil candidat créé avec succès. Il sera examiné par un coordinateur."
+        );
       }
       navigate({ to: "/candidat" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erreur lors de la création du profil.");
+      toast.error(err instanceof Error ? err.message : "Erreur lors de l'enregistrement du profil.");
     } finally {
       setSoumissionEnCours(false);
     }
@@ -463,11 +870,69 @@ function CreationProfil() {
     <div className="min-h-screen">
       <PublicNav />
       <div className="mx-auto max-w-3xl px-4 py-10">
-        <h1 className="font-display text-3xl">Créer mon profil candidat</h1>
+        <h1 className="font-display text-3xl">
+          {isRevisionMode ? "Réviser mon dossier de candidature" : "Créer mon profil candidat"}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Étape {etape + 1} sur {ETAPES.length} — {ETAPES[etape]}
         </p>
+
+        {isRevisionMode ? (
+          <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-5 text-sm shadow-sm dark:bg-amber-950/20">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div className="space-y-3 flex-1">
+                <div>
+                  <p className="font-semibold text-amber-900 dark:text-amber-200 text-base">
+                    Demande de révision de votre candidature
+                  </p>
+                  <p className="text-xs text-amber-700/90 dark:text-amber-400 mt-0.5">
+                    La commission de sélection a examiné votre dossier et requiert des modifications ou de nouvelles pièces justificatives.
+                  </p>
+                </div>
+
+                {revisionMessage ? (
+                  <div className="rounded-lg border border-amber-500/30 bg-background/90 p-3.5 text-xs text-foreground shadow-xs">
+                    <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1.5">
+                      <FileText className="size-3.5" /> Remarques du coordinateur :
+                    </p>
+                    <p className="whitespace-pre-wrap text-foreground/90">{revisionMessage}</p>
+                  </div>
+                ) : null}
+
+                {candidateDocuments.some((d) => d.a_redeposer) ? (
+                  <div className="space-y-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3.5">
+                    <p className="text-xs font-semibold text-destructive dark:text-red-400 flex items-center gap-1.5">
+                      <AlertCircle className="size-4" />
+                      Documents à redéposer impérativement :
+                    </p>
+                    <ul className="grid gap-2 sm:grid-cols-2 text-xs">
+                      {candidateDocuments
+                        .filter((d) => d.a_redeposer)
+                        .map((d) => (
+                          <li
+                            key={d.slot_pubkey}
+                            className="flex items-center gap-2 rounded-md border border-destructive/30 bg-background/80 px-2.5 py-1.5 text-destructive font-medium shadow-2xs"
+                          >
+                            <span className="size-2 rounded-full bg-destructive animate-pulse" />
+                            <span className="truncate">{d.display_name}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                  <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Les autres pièces et informations de votre dossier sont déjà conservées.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <Progress value={((etape + 1) / ETAPES.length) * 100} className="mt-4" />
+
 
         {dataError ? (
           <p className="mt-3 text-sm text-destructive">
@@ -624,6 +1089,18 @@ function CreationProfil() {
                           />
                         </div>
                         <div className="mt-3">
+                          {isRevisionMode && isSlotARedeposer("RELEVE_LICENCE", { domaine: licence.nom, anneeLicence: anneesCodes[yearIndex] }) && (
+                            <div className="mb-2 flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+                              <AlertTriangle className="size-3.5 shrink-0" />
+                              <span>Relevé demandé en révision : veuillez téléverser un nouveau fichier.</span>
+                            </div>
+                          )}
+                          {isRevisionMode && isSlotConserve("RELEVE_LICENCE", { domaine: licence.nom, anneeLicence: anneesCodes[yearIndex] }) && !licence[cle].releve && (
+                            <div className="mb-2 flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                              <CheckCircle2 className="size-3.5 shrink-0" />
+                              <span>Document déjà validé et conservé (vous pouvez le remplacer si besoin).</span>
+                            </div>
+                          )}
                           <FileUpload
                             label={`Joindre le relevé de notes — Licence A${yearIndex + 1} (PDF)`}
                             value={licence[cle].releve}
@@ -636,6 +1113,43 @@ function CreationProfil() {
                         </div>
                       </div>
                     ))}
+                    {(() => {
+                      const analyse = analyserAnneesLicence(licence);
+                      if (analyse.isOrderInvalid) {
+                        return (
+                          <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-xs text-destructive">
+                            <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-semibold">Ordre chronologique invalide</p>
+                              <p className="mt-0.5">{analyse.message}</p>
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (analyse.hasGap) {
+                        return (
+                          <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-200">
+                            <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                            <div>
+                              <p className="font-semibold">Années universitaires non consécutives</p>
+                              <p className="mt-0.5 text-amber-800 dark:text-amber-300">
+                                {analyse.message} Les années universitaires saisies pour votre Licence ne sont pas consécutives.
+                                {form.aRedouble === "oui" ? (
+                                  <span className="block mt-1 font-medium text-emerald-700 dark:text-emerald-400">
+                                    ✓ Redoublement déclaré. Vous fournirez le(s) justificatif(s) à l'étape suivante.
+                                  </span>
+                                ) : (
+                                  <span className="block mt-1 font-medium">
+                                    Si vous avez redoublé ou interrompu votre parcours, veuillez l'indiquer à l'étape suivante (« Diplôme & redoublement »).
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                     <Champ
                       label="Moyenne générale de la licence"
                       value={licence.moyenneGenerale}
@@ -643,6 +1157,18 @@ function CreationProfil() {
                       placeholder="12.50"
                       type="number"
                     />
+                    {isRevisionMode && isSlotARedeposer("DIPLOME_LICENCE", { domaine: licence.nom }) && (
+                      <div className="mt-3 mb-2 flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+                        <AlertTriangle className="size-3.5 shrink-0" />
+                        <span>Diplôme demandé en révision : veuillez téléverser un nouveau document.</span>
+                      </div>
+                    )}
+                    {isRevisionMode && isSlotConserve("DIPLOME_LICENCE", { domaine: licence.nom }) && !licence.diplome && (
+                      <div className="mt-3 mb-2 flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                        <CheckCircle2 className="size-3.5 shrink-0" />
+                        <span>Diplôme déjà déposé et conservé (vous pouvez le remplacer si besoin).</span>
+                      </div>
+                    )}
                     <FileUpload
                       label={`Joindre le diplôme de la licence ${licence.nom} (PDF)`}
                       value={licence.diplome}
@@ -664,6 +1190,23 @@ function CreationProfil() {
                 <section className="rounded-lg border border-border/70 p-4">
                   <h2 className="font-display text-lg">Redoublement</h2>
                   <p className="mt-1 text-sm text-muted-foreground">Avez-vous redoublé une année ?</p>
+                  {(() => {
+                    const hasLicenceGap = form.licences.some((l) => analyserAnneesLicence(l).hasGap);
+                    if (hasLicenceGap && form.aRedouble !== "oui") {
+                      return (
+                        <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-xs text-destructive">
+                          <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-semibold">Redoublement requis ou dates à corriger</p>
+                            <p className="mt-0.5">
+                              Vos années de Licence sélectionnées comportent un écart non consécutif. Vous devez cocher « Oui » ci-dessous pour déclarer votre redoublement et joindre les justificatifs, ou revenir à l'étape précédente pour corriger vos années de Licence.
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                   <RadioGroup className="mt-3 flex gap-6" value={form.aRedouble} onValueChange={(v) => set("aRedouble", v)}>
                     <Label className="flex items-center gap-2 font-normal">
                       <RadioGroupItem value="oui" /> Oui
@@ -688,32 +1231,52 @@ function CreationProfil() {
                         ))}
                       </div>
 
-                      {form.redoublements.map((r) => (
-                        <div key={r.annee} className="rounded-md border border-border/70 p-3">
-                          <p className="text-sm font-medium">{r.annee}</p>
-                          <div className="mt-2">
-                            <MultiFileUpload
-                              label="Ajouter un autre document"
-                              values={r.justificatifs}
-                              onChange={(vals: File[]) =>
-                                setForm((f) => ({
-                                  ...f,
-                                  redoublements: f.redoublements.map((x) =>
-                                    x.annee === r.annee
-                                      ? {
-                                          ...x,
-                                          justificatifs: vals.map((file, idx) =>
-                                            nommerFichier(f.nom, f.prenom, file, "licence", codeAnneeRedoublement(x.annee), "Redoublement", String(idx + 1)),
-                                          ),
-                                        }
-                                      : x,
-                                  ),
-                                }))
-                              }
-                            />
+                      {form.redoublements.map((r) => {
+                        const hasRedeposer = candidateDocuments.some(
+                          (d) => d.slot_type === "JUSTIFICATIF_REDOUBLEMENT" && d.redoublement_annee === r.annee && d.a_redeposer,
+                        );
+                        const hasConserved = candidateDocuments.some(
+                          (d) => d.slot_type === "JUSTIFICATIF_REDOUBLEMENT" && d.redoublement_annee === r.annee && !d.a_redeposer,
+                        );
+                        return (
+                          <div key={r.annee} className="rounded-md border border-border/70 p-3">
+                            <p className="text-sm font-medium">{r.annee}</p>
+                            {isRevisionMode && hasRedeposer && (
+                              <div className="mt-2 flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+                                <AlertTriangle className="size-3.5 shrink-0" />
+                                <span>Justificatif demandé en révision : veuillez téléverser un nouveau justificatif.</span>
+                              </div>
+                            )}
+                            {isRevisionMode && hasConserved && r.justificatifs.length === 0 && (
+                              <div className="mt-2 flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                                <CheckCircle2 className="size-3.5 shrink-0" />
+                                <span>Justificatif(s) déjà déposé(s) et conservé(s) (vous pouvez en ajouter si besoin).</span>
+                              </div>
+                            )}
+                            <div className="mt-2">
+                              <MultiFileUpload
+                                label="Ajouter un autre document"
+                                values={r.justificatifs}
+                                onChange={(vals: File[]) =>
+                                  setForm((f) => ({
+                                    ...f,
+                                    redoublements: f.redoublements.map((x) =>
+                                      x.annee === r.annee
+                                        ? {
+                                            ...x,
+                                            justificatifs: vals.map((file, idx) =>
+                                              nommerFichier(f.nom, f.prenom, file, "licence", codeAnneeRedoublement(x.annee), "Redoublement", String(idx + 1)),
+                                            ),
+                                          }
+                                        : x,
+                                    ),
+                                  }))
+                                }
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : null}
                 </section>
@@ -804,6 +1367,18 @@ function CreationProfil() {
                           type="number"
                         />
                       </div>
+                      {isRevisionMode && isSlotARedeposer("RELEVE_M1") && (
+                        <div className="mt-3 mb-2 flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+                          <AlertTriangle className="size-3.5 shrink-0" />
+                          <span>Relevé M1 demandé en révision : veuillez téléverser un nouveau relevé conforme.</span>
+                        </div>
+                      )}
+                      {isRevisionMode && isSlotConserve("RELEVE_M1") && !form.premiereAnneeMaster.releve && (
+                        <div className="mt-3 mb-2 flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                          <CheckCircle2 className="size-3.5 shrink-0" />
+                          <span>Relevé M1 déjà déposé et conservé (vous pouvez le remplacer si besoin).</span>
+                        </div>
+                      )}
                       <FileUpload
                         label="Joindre le relevé de notes de master 1 (PDF)"
                         value={form.premiereAnneeMaster.releve}
@@ -852,17 +1427,63 @@ function CreationProfil() {
                 </Recap>
                 <Separator />
                 <Recap titre="Documents">
+                  {/* Fichiers sélectionnés lors de la session courante */}
                   {form.licences
                     .flatMap((licence) => [licence.a1.releve, licence.a2.releve, licence.a3.releve, licence.diplome])
                     .filter((f): f is File => Boolean(f))
                     .map((f, i) => (
-                      <p key={`${f.name}-${i}`} className="text-success">
-                        ✓ {f.name}
+                      <p key={`${f.name}-${i}`} className="text-success font-medium">
+                        ✓ {f.name} <span className="text-xs text-muted-foreground font-normal">(Nouveau fichier sélectionné)</span>
                       </p>
                     ))}
                   {form.aFaitPremiereAnneeMaster === "oui" && form.premiereAnneeMaster.releve ? (
-                    <p className="text-success">✓ {form.premiereAnneeMaster.releve.name}</p>
+                    <p className="text-success font-medium">
+                      ✓ {form.premiereAnneeMaster.releve.name}{" "}
+                      <span className="text-xs text-muted-foreground font-normal">(Nouveau fichier sélectionné)</span>
+                    </p>
                   ) : null}
+
+                  {/* Fichiers précédemment déposés et conservés */}
+                  {isRevisionMode &&
+                    candidateDocuments
+                      .filter((d) => !d.a_redeposer)
+                      .map((d) => (
+                        <p key={d.slot_pubkey} className="text-emerald-600 dark:text-emerald-400">
+                          ✓ {d.display_name}{" "}
+                          <span className="text-xs text-muted-foreground">(Précédemment déposé et conservé)</span>
+                        </p>
+                      ))}
+
+                  {/* Pièces requises à redéposer mais non encore sélectionnées */}
+                  {isRevisionMode &&
+                    candidateDocuments
+                      .filter((d) => d.a_redeposer)
+                      .map((d) => {
+                        let isReplaced = false;
+                        if (d.slot_type === "RELEVE_LICENCE") {
+                          const lic = form.licences.find((l) => (l.nom || "") === (d.domaine || ""));
+                          if (lic) {
+                            if (d.annee_licence === "A1" && lic.a1.releve) isReplaced = true;
+                            if (d.annee_licence === "A2" && lic.a2.releve) isReplaced = true;
+                            if (d.annee_licence === "A3" && lic.a3.releve) isReplaced = true;
+                          }
+                        } else if (d.slot_type === "DIPLOME_LICENCE") {
+                          const lic = form.licences.find((l) => (l.nom || "") === (d.domaine || ""));
+                          if (lic && lic.diplome) isReplaced = true;
+                        } else if (d.slot_type === "RELEVE_M1") {
+                          if (form.premiereAnneeMaster.releve) isReplaced = true;
+                        } else if (d.slot_type === "JUSTIFICATIF_REDOUBLEMENT") {
+                          const red = form.redoublements.find((r) => r.annee === d.redoublement_annee);
+                          if (red && red.justificatifs.length > 0) isReplaced = true;
+                        }
+                        if (isReplaced) return null;
+                        return (
+                          <p key={d.slot_pubkey} className="text-destructive font-medium">
+                            ✗ {d.display_name}{" "}
+                            <span className="text-xs font-normal text-destructive">(Requis — non encore téléversé)</span>
+                          </p>
+                        );
+                      })}
                 </Recap>
                 {form.aFaitPremiereAnneeMaster === "oui" ? (
                   <>
@@ -883,7 +1504,7 @@ function CreationProfil() {
                         <p className="font-medium">{r.annee}</p>
                         {r.justificatifs.map((j, i) => (
                           <p key={`${r.annee}-${j.name}-${i}`} className="text-success">
-                            ✓ {j.name}
+                            ✓ {j.name} <span className="text-xs text-muted-foreground font-normal">(Nouveau fichier sélectionné)</span>
                           </p>
                         ))}
                       </div>
@@ -913,12 +1534,22 @@ function CreationProfil() {
             <ChevronLeft className="size-4" /> Précédent
           </Button>
           {etape < ETAPES.length - 1 ? (
-            <Button onClick={() => setEtape((s) => s + 1)}>
+            <Button
+              onClick={passerEtapeSuivante}
+              disabled={
+                (etape === 1 && form.licences.some((l) => analyserAnneesLicence(l).isOrderInvalid)) ||
+                (etape === 2 && form.licences.some((l) => analyserAnneesLicence(l).hasGap && form.aRedouble !== "oui"))
+              }
+            >
               Suivant <ChevronRight className="size-4" />
             </Button>
           ) : (
             <Button onClick={soumettre} disabled={soumissionEnCours}>
-              {soumissionEnCours ? "Envoi en cours..." : "Créer mon profil candidat"}
+              {soumissionEnCours
+                ? "Envoi en cours..."
+                : isRevisionMode
+                  ? "Mettre à jour et renvoyer mon dossier"
+                  : "Créer mon profil candidat"}
             </Button>
           )}
         </div>

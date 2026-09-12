@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Accueil } from "./accueil";
+import { AccueilView } from "@/components/views/AccueilView";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,5 +18,5 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  component: Accueil,
+  component: AccueilView,
 });

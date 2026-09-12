@@ -27,6 +27,16 @@ export interface RegisterRequest {
   confirmPassword: string;
 }
 
+export interface ActivateAccountRequest {
+  token: string;
+  password: string;
+  confirm_password: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
 class AuthService {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -41,6 +51,17 @@ class AuthService {
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    await handleApiError(response);
+    return response.json();
+  }
+
+  async activateAccount(data: ActivateAccountRequest): Promise<MessageResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/activate`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
