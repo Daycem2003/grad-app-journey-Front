@@ -1,20 +1,24 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { FileCheck2, Paperclip, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-/** Upload fictif : aucun fichier n'est réellement envoyé, seul le nom est conservé. */
+const renommerFichier = (file: File, nouveauNom: string): File =>
+  new File([file], nouveauNom, { type: file.type, lastModified: file.lastModified });
+
 export function FileUpload({
   label,
   value,
   onChange,
   accept = ".pdf",
   placeholderName,
+  generatedName,
 }: {
   label: string;
-  value: string | null;
-  onChange: (name: string | null) => void;
+  value: File | null;
+  onChange: (file: File | null) => void;
   accept?: string;
   placeholderName?: string;
+  generatedName?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -25,13 +29,22 @@ export function FileUpload({
         type="file"
         accept={accept}
         className="hidden"
-        onChange={(e) => onChange(e.target.files?.[0]?.name ?? placeholderName ?? "document.pdf")}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file) {
+            onChange(null);
+            return;
+          }
+          const nom = generatedName ?? placeholderName ?? "document.pdf";
+          onChange(renommerFichier(file, nom));
+          e.target.value = "";
+        }}
       />
       {value ? (
         <div className="flex items-center justify-between gap-3 rounded-md border border-success/30 bg-success/8 px-3 py-2">
           <span className="flex min-w-0 items-center gap-2 text-sm">
             <FileCheck2 className="size-4 shrink-0 text-success" />
-            <span className="truncate">{value}</span>
+            <span className="truncate">{value.name}</span>
           </span>
           <button
             type="button"
@@ -60,13 +73,14 @@ export function MultiFileUpload({
   label,
   values,
   onChange,
+  generatedName,
 }: {
   label: string;
-  values: string[];
-  onChange: (values: string[]) => void;
+  values: File[];
+  onChange: (values: File[]) => void;
+  generatedName?: (index: number) => string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [count, setCount] = useState(values.length);
 
   return (
     <div className="space-y-2">
@@ -76,19 +90,22 @@ export function MultiFileUpload({
         accept=".pdf"
         className="hidden"
         onChange={(e) => {
-          const name = e.target.files?.[0]?.name ?? `justificatif_${count + 1}.pdf`;
-          setCount((c) => c + 1);
-          onChange([...values, name]);
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const index = values.length;
+          const nom = generatedName?.(index) ?? `justificatif_${index + 1}.pdf`;
+          onChange([...values, renommerFichier(file, nom)]);
+          e.target.value = "";
         }}
       />
       {values.map((v, i) => (
         <div
-          key={`${v}-${i}`}
+          key={`${v.name}-${i}`}
           className="flex items-center justify-between gap-3 rounded-md border border-success/30 bg-success/8 px-3 py-2"
         >
           <span className="flex min-w-0 items-center gap-2 text-sm">
             <FileCheck2 className="size-4 shrink-0 text-success" />
-            <span className="truncate">{v}</span>
+            <span className="truncate">{v.name}</span>
           </span>
           <button
             type="button"

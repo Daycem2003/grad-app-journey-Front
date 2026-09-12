@@ -31,10 +31,20 @@ const ETAPES = [
   { icon: BotMessageSquare, titre: "Suivez", texte: "Recevez les notifications et suivez le statut du dossier." },
 ];
 
-function Accueil() {
-  const { masters, periode } = useStore();
-  const ouverts = masters.filter((m) => m.statut === "Ouvert");
-  const places = masters.reduce((t, m) => t + m.places, 0);
+// Le statut renvoyé par l'API backend est "OUVERT" (majuscules, cf. seed_db.py),
+// pas "Ouvert" — comparaison volontairement insensible à la casse pour rester
+// robuste tant que l'enum complet des statuts n'est pas confirmé.
+function estOuvert(statut: string) {
+  return statut.toUpperCase() === "OUVERT";
+}
+
+export function Accueil() {
+  const { masters, mastersLoading, mastersError, periode } = useStore();
+  const ouverts = masters.filter((m) => estOuvert(m.statut));
+  // "places" n'existe pas dans MasterSummarySerializer (GET /api/v1/masters/) :
+  // on affiche à la place le nombre d'universités distinctes représentées,
+  // une donnée honnêtement disponible dans la réponse actuelle de l'API.
+  const universitesCount = new Set(masters.map((m) => m.universite)).size;
 
   return (
     <div className="min-h-screen">
@@ -68,24 +78,30 @@ function Accueil() {
             </Button>
           </div>
 
-          <dl className="mt-12 grid max-w-2xl grid-cols-2 gap-6 sm:grid-cols-4">
-            {[
-              { k: "Masters", v: masters.length },
-              { k: "Ouverts", v: ouverts.length },
-              { k: "Places", v: places },
-              { k: "Clôture", v: new Date(periode.fin).toLocaleDateString("fr-FR") },
-            ].map((s) => (
-              <div key={s.k}>
-                <dt className="text-[11px] uppercase tracking-widest text-primary-foreground/55">
-                  {s.k}
-                </dt>
-                <dd className="mt-1 font-display text-2xl">{s.v}</dd>
-              </div>
-            ))}
-          </dl>
+          {mastersError ? (
+            <p className="mt-10 max-w-2xl text-sm text-primary-foreground/70">
+              Impossible de charger les statistiques des Masters pour le moment.
+            </p>
+          ) : (
+            <dl className="mt-12 grid max-w-2xl grid-cols-2 gap-6 sm:grid-cols-4">
+              {[
+                { k: "Masters", v: mastersLoading ? "…" : masters.length },
+                { k: "Ouverts", v: mastersLoading ? "…" : ouverts.length },
+                { k: "Universités", v: mastersLoading ? "…" : universitesCount },
+                { k: "Clôture", v: new Date(periode.fin).toLocaleDateString("fr-FR") },
+              ].map((s) => (
+                <div key={s.k}>
+                  <dt className="text-[11px] uppercase tracking-widest text-primary-foreground/55">
+                    {s.k}
+                  </dt>
+                  <dd className="mt-1 font-display text-2xl">{s.v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </section>
-
+          
       <section className="mx-auto max-w-6xl px-4 py-14">
         <h2 className="font-display text-2xl">Comment ça marche</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -26,11 +26,15 @@ function MonProfil() {
     return <p className="text-muted-foreground">Aucun profil candidat n'a encore été créé.</p>;
   }
 
-  const annees = [
-    { titre: "Licence 1", data: profil.l1 },
-    { titre: "Licence 2", data: profil.l2 },
-    { titre: "Licence 3", data: profil.l3 },
-  ];
+  const licences = profil.licences ?? [{
+    nom: "",
+    universite: profil.diplome.universite,
+    a1: profil.l1,
+    a2: profil.l2,
+    a3: profil.l3,
+    moyenneGenerale: "",
+    diplome: profil.diplome.fichier,
+  }];
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -57,14 +61,18 @@ function MonProfil() {
             <CardTitle>Parcours académique</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            {annees.map((a, i) => (
-              <div key={a.titre}>
-                {i > 0 ? <Separator className="mb-4" /> : null}
-                <p className="font-medium">{a.titre}</p>
-                <p className="text-muted-foreground">
-                  {a.data.anneeUniversitaire || "—"} · moyenne {a.data.moyenne || "—"}
-                </p>
-                {a.data.releve ? <p className="text-success">✓ {a.data.releve}</p> : null}
+            {licences.map((licence, licenceIndex) => (
+              <div key={`${licence.nom}-${licenceIndex}`}>
+                {licenceIndex > 0 ? <Separator className="mb-4" /> : null}
+                <p className="font-medium">Licence{licence.nom ? ` en ${licence.nom}` : ""} — {licence.universite || "—"}</p>
+                {(["a1", "a2", "a3"] as const).map((cle, yearIndex) => (
+                  <div key={cle} className="mt-2">
+                    <p className="text-muted-foreground">Licence A{yearIndex + 1} — {licence[cle].anneeUniversitaire || "—"} · moyenne {licence[cle].moyenne || "—"}</p>
+                    {licence[cle].releve ? <p className="text-success">✓ {licence[cle].releve}</p> : null}
+                  </div>
+                ))}
+                <p className="mt-2">Moyenne générale : {licence.moyenneGenerale || "—"}</p>
+                {licence.diplome ? <p className="text-success">✓ {licence.diplome}</p> : null}
               </div>
             ))}
           </CardContent>
@@ -77,11 +85,20 @@ function MonProfil() {
           <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
             <Ligne label="Année d'obtention" value={profil.diplome.annee || "—"} />
             <Ligne label="Université" value={profil.diplome.universite || "—"} />
-            {profil.diplome.fichier ? (
-              <p className="text-success sm:col-span-2">✓ {profil.diplome.fichier}</p>
-            ) : null}
+            <p className="text-muted-foreground sm:col-span-2">Les diplômes sont listés avec chaque licence.</p>
           </CardContent>
         </Card>
+
+        {profil.aFaitPremiereAnneeMaster && profil.premiereAnneeMaster ? (
+          <Card className="border-border/70 shadow-none">
+            <CardHeader><CardTitle>Première année de master</CardTitle></CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <Ligne label="Master" value={profil.premiereAnneeMaster.master} />
+              <Ligne label="Institut" value={profil.premiereAnneeMaster.institut} />
+              {profil.premiereAnneeMaster.releve ? <p className="text-success">✓ {profil.premiereAnneeMaster.releve}</p> : null}
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card className="border-border/70 shadow-none">
           <CardHeader>

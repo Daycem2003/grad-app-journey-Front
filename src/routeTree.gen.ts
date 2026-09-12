@@ -15,6 +15,9 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as CandidatRouteImport } from './routes/candidat'
 import { Route as CoordinateurRouteImport } from './routes/coordinateur'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProfilsRouteImport } from './routes/profils'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminCandidatsRouteImport } from './routes/admin.candidats'
 import { Route as AdminListesRouteImport } from './routes/admin.listes'
@@ -63,6 +66,21 @@ const CandidatRoute = CandidatRouteImport.update({
 const CoordinateurRoute = CoordinateurRouteImport.update({
   id: '/coordinateur',
   path: '/coordinateur',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfilsRoute = ProfilsRouteImport.update({
+  id: '/profils',
+  path: '/profils',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -171,6 +189,9 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/coordinateur': typeof CoordinateurRouteWithChildren
+  '/login': typeof LoginRoute
+  '/profils': typeof ProfilsRoute
+  '/register': typeof RegisterRoute
   '/admin/candidats': typeof AdminCandidatsRoute
   '/admin/listes': typeof AdminListesRoute
   '/admin/notifications': typeof AdminNotificationsRoute
@@ -195,6 +216,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accueil': typeof AccueilRoute
   '/assistant': typeof AssistantRoute
+  '/login': typeof LoginRoute
+  '/profils': typeof ProfilsRoute
+  '/register': typeof RegisterRoute
   '/admin/candidats': typeof AdminCandidatsRoute
   '/admin/listes': typeof AdminListesRoute
   '/admin/notifications': typeof AdminNotificationsRoute
@@ -223,6 +247,9 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/candidat': typeof CandidatRouteWithChildren
   '/coordinateur': typeof CoordinateurRouteWithChildren
+  '/login': typeof LoginRoute
+  '/profils': typeof ProfilsRoute
+  '/register': typeof RegisterRoute
   '/admin/candidats': typeof AdminCandidatsRoute
   '/admin/listes': typeof AdminListesRoute
   '/admin/notifications': typeof AdminNotificationsRoute
@@ -252,6 +279,9 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/candidat'
     | '/coordinateur'
+    | '/login'
+    | '/profils'
+    | '/register'
     | '/admin/candidats'
     | '/admin/listes'
     | '/admin/notifications'
@@ -276,6 +306,9 @@ export interface FileRouteTypes {
     | '/'
     | '/accueil'
     | '/assistant'
+    | '/login'
+    | '/profils'
+    | '/register'
     | '/admin/candidats'
     | '/admin/listes'
     | '/admin/notifications'
@@ -303,6 +336,9 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/candidat'
     | '/coordinateur'
+    | '/login'
+    | '/profils'
+    | '/register'
     | '/admin/candidats'
     | '/admin/listes'
     | '/admin/notifications'
@@ -331,6 +367,9 @@ export interface RootRouteChildren {
   AssistantRoute: typeof AssistantRoute
   CandidatRoute: typeof CandidatRouteWithChildren
   CoordinateurRoute: typeof CoordinateurRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  ProfilsRoute: typeof ProfilsRoute
+  RegisterRoute: typeof RegisterRoute
   MastersMasterIdRoute: typeof MastersMasterIdRoute
   ProfilCreerRoute: typeof ProfilCreerRoute
   MastersIndexRoute: typeof MastersIndexRoute
@@ -378,6 +417,27 @@ declare module '@tanstack/react-router' {
       path: '/coordinateur'
       fullPath: '/coordinateur'
       preLoaderRoute: typeof CoordinateurRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profils': {
+      id: '/profils'
+      path: '/profils'
+      fullPath: '/profils'
+      preLoaderRoute: typeof ProfilsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -584,6 +644,9 @@ const rootRouteChildren: RootRouteChildren = {
   AssistantRoute: AssistantRoute,
   CandidatRoute: CandidatRouteWithChildren,
   CoordinateurRoute: CoordinateurRouteWithChildren,
+  LoginRoute: LoginRoute,
+  ProfilsRoute: ProfilsRoute,
+  RegisterRoute: RegisterRoute,
   MastersMasterIdRoute: MastersMasterIdRoute,
   ProfilCreerRoute: ProfilCreerRoute,
   MastersIndexRoute: MastersIndexRoute,
