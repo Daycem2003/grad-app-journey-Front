@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Bar,
@@ -12,9 +13,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/SpaceLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStore } from "@/lib/app-store";
+import { mastersService, type Master } from "@/services/masters-service";
+import { applicationsService, type ApplicationDTO } from "@/services/applications-service";
 
 export const Route = createFileRoute("/admin/statistiques")({
   head: () => ({
@@ -33,17 +36,73 @@ export const Route = createFileRoute("/admin/statistiques")({
 
 const STATUT_COLORS = ["#1e3a5f", "#c8a45c", "#3f7d58", "#a33b3b"];
 
-function Statistiques() {
-  const { masters, candidatures } = useStore();
+const STATUS_LABELS: Record<string, string> = {
+  SOUMISE: "Soumise",
+  EN_COURS: "En cours",
+  ACCEPTEE: "Acceptée",
+  REJETEE: "Rejetée",
+  A_REVISER: "À réviser",
+  VALIDE: "Validée",
+};
 
-  const parStatut = ["Soumise", "À réviser", "Approuvée", "Rejetée"].map((s) => ({
-    name: s,
-    value: candidatures.filter((c) => c.statut === s).length,
+function Statistiques() {
+  const [masters, setMasters] = useState<Master[]>([]);
+  const [applications, setApplications] = useState<ApplicationDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadData() {
+      setLoading(true);
+      try {
+        const [mList, aList] = await Promise.all([
+          mastersService.listMasters().catch(() => []),
+          applicationsService.listAllApplications().catch(() => []),
+        ]);
+
+        if (!isCancelled) {
+          setMasters(mList);
+          setApplications(aList);
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <PageHeader
+          title="Statistiques"
+          subtitle="Indicateurs clés de la campagne de candidatures."
+        />
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-sm text-muted-foreground">Chargement des statistiques…</span>
+        </div>
+      </div>
+    );
+  }
+
+  const statusMap = ["SOUMISE", "EN_COURS", "ACCEPTEE", "REJETEE"];
+  const parStatut = statusMap.map((s) => ({
+    name: STATUS_LABELS[s] || s,
+    value: applications.filter((c) => c.statut?.toUpperCase() === s).length,
   }));
 
   const parDomaine = Object.entries(
-    candidatures.reduce<Record<string, number>>((acc, c) => {
-      const d = masters.find((m) => m.id === c.masterId)?.domaine ?? "Autre";
+    applications.reduce<Record<string, number>>((acc, c) => {
+      const d = c.master?.domaine || masters.find((m) => m.pubkey === c.master?.pubkey)?.domaine || "Autre";
       acc[d] = (acc[d] ?? 0) + 1;
       return acc;
     }, {}),
@@ -51,7 +110,9 @@ function Statistiques() {
 
   const parUniversite = Object.entries(
     masters.reduce<Record<string, number>>((acc, m) => {
-      acc[m.universite] = (acc[m.universite] ?? 0) + m.places;
+      const univ = m.universite || "Non spécifiée";
+      const places = m.nombre_places ?? (m as any).places ?? 0;
+      acc[univ] = (acc[univ] ?? 0) + places;
       return acc;
     }, {}),
   ).map(([name, value]) => ({ name, value }));
@@ -88,15 +149,21 @@ function Statistiques() {
             <CardTitle>Candidatures par domaine</CardTitle>
           </CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={parDomaine}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" fontSize={11} interval={0} angle={-15} height={50} />
-                <YAxis allowDecimals={false} fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#1e3a5f" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {parDomaine.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Aucune candidature enregistrée pour générer la répartition par domaine.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={parDomaine}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" fontSize={11} interval={0} angle={-15} height={50} />
+                  <YAxis allowDecimals={false} fontSize={11} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#1e3a5f" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -105,18 +172,25 @@ function Statistiques() {
             <CardTitle>Places offertes par université</CardTitle>
           </CardHeader>
           <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={parUniversite} layout="vertical" margin={{ left: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" allowDecimals={false} fontSize={11} />
-                <YAxis type="category" dataKey="name" width={160} fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#c8a45c" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {parUniversite.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Aucun Master enregistré.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={parUniversite} layout="vertical" margin={{ left: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" allowDecimals={false} fontSize={11} />
+                  <YAxis type="category" dataKey="name" width={160} fontSize={11} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#c8a45c" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
+

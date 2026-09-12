@@ -1,35 +1,17 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  CANDIDATS,
-  CANDIDATURES,
-  NOTIFICATIONS,
-} from "./mock-data";
-import {
   mastersService,
   type Master,
   type CreateMasterPayload,
   type ScoreCriterionPayload,
   type CreateEligibilityRulePayload,
 } from "@/services/masters-service";
-import type {
-  Candidat,
-  Candidature,
-  CandidatureStatut,
-  Notification,
-  Role,
-} from "./types";
+import type { Role } from "./types";
 
 /**
- * Couche d'état applicative.
- * Les Masters viennent de l'API backend réelle (GET /api/v1/masters/).
- * La création d'un Master (coordinateur) est également branchée sur le
- * backend réel : POST /masters/ puis, en séquence, l'ajout des documents
- * requis, de la formule de score, des critères d'éligibilité, et enfin la
- * publication (POST /masters/{pubkey}/publish).
- *
- * Candidats / candidatures / notifications restent mockés pour l'instant
- * (hors périmètre de cette tâche) — ils seront branchés séparément sur leurs
- * propres endpoints.
+ * Couche d'état applicative globale.
+ * Les Masters viennent exclusivement de l'API backend réelle (GET /api/v1/masters/).
+ * La création d'un Master (coordinateur) est également orchestrée via le backend réel.
  */
 
 export interface CreateMasterFormPayload {
@@ -47,33 +29,18 @@ type AppStore = {
   mastersError: string | null;
   refetchMasters: () => void;
   creerMaster: (payload: CreateMasterFormPayload, token: string) => Promise<Master>;
-  candidats: Candidat[];
-  candidatures: Candidature[];
-  notifications: Notification[];
-  profil: Candidat | null;
-  creerProfil: (candidat: Candidat) => void;
-  postuler: (masterId: string) => void;
-  changerStatut: (candidatureId: string, statut: CandidatureStatut) => void;
-  envoyerNotification: (n: Omit<Notification, "id" | "date" | "lu">) => void;
   periode: { debut: string; fin: string };
   setPeriode: (p: { debut: string; fin: string }) => void;
   getMaster: (pubkey: string) => Master | undefined;
-  getCandidat: (id: string) => Candidat | undefined;
 };
 
 const StoreContext = createContext<AppStore | null>(null);
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>("guest");
-
   const [masters, setMasters] = useState<Master[]>([]);
   const [mastersLoading, setMastersLoading] = useState(true);
   const [mastersError, setMastersError] = useState<string | null>(null);
-
-  const [candidats, setCandidats] = useState<Candidat[]>(CANDIDATS);
-  const [candidatures, setCandidatures] = useState<Candidature[]>(CANDIDATURES);
-  const [notifications, setNotifications] = useState<Notification[]>(NOTIFICATIONS);
-  const [profil, setProfil] = useState<Candidat | null>(null);
   const [periode, setPeriode] = useState({ debut: "2026-07-01", fin: "2026-08-31" });
 
   const fetchMasters = () => {
@@ -94,8 +61,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppStore>(() => {
     const getMaster = (pubkey: string) => masters.find((m) => m.pubkey === pubkey);
-    const getCandidat = (id: string) =>
-      profil && profil.id === id ? profil : candidats.find((c) => c.id === id);
 
     return {
       role,
@@ -104,14 +69,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       mastersLoading,
       mastersError,
       refetchMasters: fetchMasters,
-      candidats,
-      candidatures,
-      notifications,
-      profil,
       periode,
       setPeriode,
       getMaster,
-      getCandidat,
 
       /**
        * Orchestration complète de la création d'un appel à candidature :
@@ -141,46 +101,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
         fetchMasters();
         return published;
       },
-
-      creerProfil: (candidat) => {
-        setProfil(candidat);
-        setCandidats((prev) => [candidat, ...prev]);
-        setRole("candidat");
-      },
-      postuler: (masterId) => {
-        const master = masters.find((m) => m.pubkey === masterId);
-        if (!master || !profil) return;
-        const today = new Date().toISOString().slice(0, 10);
-        setCandidatures((prev) => [
-          {
-            id: `a-${Date.now()}`,
-            candidatId: profil.id,
-            masterId,
-            // Le score dépend de la formule de pondération (ScoreFormula) définie
-            // côté backend par master — non encore exposée par l'API consommée ici.
-            // À brancher sur un vrai endpoint de calcul/soumission de candidature.
-            score: 0,
-            statut: "Soumise",
-            majLe: today,
-          },
-          ...prev,
-        ]);
-      },
-      changerStatut: (candidatureId, statut) =>
-        setCandidatures((prev) =>
-          prev.map((c) =>
-            c.id === candidatureId
-              ? { ...c, statut, majLe: new Date().toISOString().slice(0, 10) }
-              : c,
-          ),
-        ),
-      envoyerNotification: (n) =>
-        setNotifications((prev) => [
-          { ...n, id: `n-${Date.now()}`, date: new Date().toISOString().slice(0, 10), lu: false },
-          ...prev,
-        ]),
     };
-  }, [role, masters, mastersLoading, mastersError, candidats, candidatures, notifications, profil, periode]);
+  }, [role, masters, mastersLoading, mastersError, periode]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
@@ -189,4 +111,5 @@ export function useStore() {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error("useStore doit être utilisé dans AppStoreProvider");
   return ctx;
-} 
+}
+ 

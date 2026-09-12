@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { NotificationsSkeleton } from "@/components/shared/PageSkeletons";
-import { useStore } from "@/lib/app-store";
 
 export const Route = createFileRoute("/admin/notifications")({
   head: () => ({
@@ -28,7 +27,9 @@ export const Route = createFileRoute("/admin/notifications")({
 });
 
 function NotificationsAdmin() {
-  const { notifications, envoyerNotification } = useStore();
+  const [notifications, setNotifications] = useState<
+    { id: string; destinataire: string; objet: string; message: string; date: string }[]
+  >([]);
   const [destinataire, setDestinataire] = useState("Tous les candidats");
   const [objet, setObjet] = useState("");
   const [message, setMessage] = useState("");
@@ -38,11 +39,21 @@ function NotificationsAdmin() {
       toast.error("Renseignez un objet et un message.");
       return;
     }
-    envoyerNotification({ destinataire, objet, message });
+    setNotifications((prev) => [
+      {
+        id: `n-${Date.now()}`,
+        destinataire,
+        objet,
+        message,
+        date: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
     setObjet("");
     setMessage("");
     toast.success("Annonce diffusée.");
   };
+
 
   return (
     <div className="mx-auto max-w-3xl">

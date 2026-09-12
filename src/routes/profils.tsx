@@ -2,10 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { GraduationCap, Search, User, ClipboardList, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/lib/app-store";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect } from "react";
 import type { Role } from "@/lib/types";
+
 
 export const Route = createFileRoute("/profils")({
   component: SelectionProfil,
