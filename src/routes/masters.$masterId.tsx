@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Award, CalendarDays, CheckCircle2, FileText, Info as InfoIcon, MapPin, Users } from "lucide-react";
+import { Award, CalendarDays, CheckCircle2, FileText, Info as InfoIcon, Loader2, MapPin, Users } from "lucide-react";
 import { PublicNav } from "@/components/layout/PublicNav";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
