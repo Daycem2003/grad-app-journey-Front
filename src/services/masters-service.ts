@@ -1,4 +1,5 @@
 import { API_BASE_URL, getHeaders, handleApiError } from "./api";
+import { authService } from "./auth-service";
 export interface CreateMasterPayload {
   nom: string;
   domaine: string;
@@ -7,6 +8,8 @@ export interface CreateMasterPayload {
   nombre_places: number;
   date_debut: string;
   date_fin: string;
+  universite?: string | undefined;
+  ville?: string | undefined;
   type_licence_pubkeys?: string[];
 }
 
@@ -49,8 +52,19 @@ export interface EligibilityRule {
   obligatoire: boolean;
   rule_value: RuleValueData;
 }
+export interface TypeLicenceSummary {
+  pubkey: string;
+  intitule: string;
+  domaine?: string | undefined;
+}
+
+export interface RequiredDocumentItem {
+  pubkey: string;
+  type: string;
+}
+
 export interface Master {
-  id: number;
+  id?: number | undefined;
   pubkey: string;
   nom: string;
   universite: string;
@@ -58,19 +72,29 @@ export interface Master {
   domaine: string;
   discipline: string;
   specialite: string;
-  nombrePlaces: number;
-  dateDebut: string;
-  dateFin: string;
-  statut: "OUVERT" | "FERME" | "BROUILLON";
-  createdAt?: string;
-  updatedAt?: string;
+  nombre_places?: number | undefined;
+  nombrePlaces?: number | undefined;
+  date_debut?: string | undefined;
+  dateDebut?: string | undefined;
+  date_fin?: string | undefined;
+  dateFin?: string | undefined;
+  statut: "OUVERT" | "FERME" | "BROUILLON" | string;
+  coordinateur_pubkey?: string | undefined;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+  created_at?: string | undefined;
+  updated_at?: string | undefined;
 }
 
 export interface MasterDetail extends Master {
-  typeLicencesAcceptees?: TypeLicence[];
-  eligibilityCriteria?: EligibilityCriterion[];
-  scoreFormula?: ScoreFormula;
-  requiredDocuments?: RequiredDocument[];
+  type_licences_acceptees?: TypeLicenceSummary[] | undefined;
+  typeLicencesAcceptees?: TypeLicence[] | undefined;
+  passerelles_vers?: string[] | undefined;
+  passerelles_depuis?: string[] | undefined;
+  required_documents?: RequiredDocumentItem[] | undefined;
+  requiredDocuments?: RequiredDocument[] | undefined;
+  eligibilityCriteria?: EligibilityCriterion[] | undefined;
+  scoreFormula?: ScoreFormula | undefined;
 }
 
 export interface TypeLicence {
@@ -124,10 +148,12 @@ export interface Application {
 }
 
 class MastersService {
-  async listMasters(): Promise<Master[]> {
+  async listMasters(token?: string): Promise<Master[]> {
+    const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
     const response = await fetch(`${API_BASE_URL}/masters/`, {
       method: "GET",
-      headers: getHeaders(),
+      headers: getHeaders(effectiveToken),
+      credentials: "include",
     });
 
     await handleApiError(response);
@@ -199,10 +225,12 @@ async createMaster(token: string, payload: CreateMasterPayload): Promise<Master>
     return response.json();
   }
 
-  async getMasterDetail(masterId: string): Promise<MasterDetail> {
+  async getMasterDetail(masterId: string, token?: string): Promise<MasterDetail> {
+    const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
     const response = await fetch(`${API_BASE_URL}/masters/${masterId}`, {
       method: "GET",
-      headers: getHeaders(),
+      headers: getHeaders(effectiveToken),
+      credentials: "include",
     });
 
     await handleApiError(response);

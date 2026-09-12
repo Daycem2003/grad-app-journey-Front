@@ -344,7 +344,6 @@ const [specialite, setSpecialite] = useState("");
               <Label>Nombre de places</Label>
               <Input className="mt-1.5" value={places} onChange={(e) => setPlaces(e.target.value)} />
             </div>
-            <div />
             <div>
               <Label>Date de début</Label>
               <Input className="mt-1.5" type="date" value={debut} onChange={(e) => setDebut(e.target.value)} />
