@@ -4,6 +4,7 @@ import { Bell, FileEdit, Info, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/SpaceLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { notificationsService, type InAppNotification } from "@/services/notifications-service";
+import { useWebSocketNotifications } from "@/hooks/useWebSocketNotifications";
 
 export const Route = createFileRoute("/candidat/notifications")({
   head: () => ({
@@ -45,6 +46,28 @@ function NotificationsCandidat() {
       isCancelled = true;
     };
   }, []);
+
+  useWebSocketNotifications((event) => {
+    const p = event.payload;
+    setNotifications((prev) => {
+      const pubkey = p.pubkey || `notif_${Date.now()}`;
+      if (prev.some((n) => n.pubkey === pubkey)) return prev;
+      return [
+        {
+          pubkey,
+          motif: p.motif || "AUTRE",
+          objet: p.objet,
+          corps: p.corps || p.message || "",
+          envoyee_le: p.envoyee_le || new Date().toISOString(),
+          is_read: false,
+          document_concerne: p.document_concerne || null,
+          application_pubkey: p.application_pubkey || null,
+        },
+        ...prev,
+      ];
+    });
+  });
+
 
   if (loading) {
     return (

@@ -12,6 +12,15 @@ export interface InAppNotification {
   is_read: boolean;
 }
 
+export interface BroadcastNotificationDTO {
+  pubkey: string;
+  cible: "COORDINATEURS" | "CANDIDATS" | "TOUS" | string;
+  objet: string;
+  message: string;
+  envoyee_le: string;
+  created_at: string;
+}
+
 export const notificationsService = {
   async getMyNotifications(token?: string | undefined): Promise<InAppNotification[]> {
     const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
@@ -33,4 +42,30 @@ export const notificationsService = {
     await handleApiError(res);
     return res.json();
   },
+
+  async broadcastNotification(
+    payload: { cible: "COORDINATEURS" | "CANDIDATS" | "TOUS"; objet: string; message: string },
+    token?: string | undefined
+  ): Promise<BroadcastNotificationDTO> {
+    const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
+    const res = await fetch(`${API_BASE_URL}/notifications/broadcast/`, {
+      method: "POST",
+      headers: getHeaders(effectiveToken),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    await handleApiError(res);
+    return res.json();
+  },
+
+  async listBroadcasts(token?: string | undefined): Promise<BroadcastNotificationDTO[]> {
+    const effectiveToken = token ?? authService.getStoredToken() ?? undefined;
+    const res = await fetch(`${API_BASE_URL}/notifications/broadcasts/`, {
+      headers: getHeaders(effectiveToken),
+      credentials: "include",
+    });
+    await handleApiError(res);
+    return res.json();
+  },
 };
+
