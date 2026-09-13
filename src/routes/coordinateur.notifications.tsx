@@ -7,7 +7,7 @@ import {
   notificationsService,
   type InAppNotification,
 } from "@/services/notifications-service";
-import { useWebSocketNotifications } from "@/hooks/useWebSocketNotifications";
+import { useNotifications } from "@/lib/notification-context";
 
 export const Route = createFileRoute("/coordinateur/notifications")({
   head: () => ({
@@ -22,44 +22,12 @@ export const Route = createFileRoute("/coordinateur/notifications")({
 });
 
 function NotifsCoordinateur() {
-  const [notifications, setNotifications] = useState<InAppNotification[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchNotifs = async () => {
-    try {
-      const data = await notificationsService.getMyNotifications();
-      setNotifications(data);
-    } catch {
-      setNotifications([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { notifications, refreshNotifications, isConnected } = useNotifications();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    void fetchNotifs();
-  }, []);
-
-  useWebSocketNotifications((event) => {
-    const p = event.payload;
-    setNotifications((prev) => {
-      const pubkey = p.pubkey || `notif_${Date.now()}`;
-      if (prev.some((n) => n.pubkey === pubkey)) return prev;
-      return [
-        {
-          pubkey,
-          motif: p.motif || "AUTRE",
-          objet: p.objet,
-          corps: p.corps || p.message || "",
-          envoyee_le: p.envoyee_le || new Date().toISOString(),
-          is_read: false,
-          document_concerne: p.document_concerne || null,
-          application_pubkey: p.application_pubkey || null,
-        },
-        ...prev,
-      ];
-    });
-  });
+    void refreshNotifications();
+  }, [refreshNotifications]);
 
 
   return (

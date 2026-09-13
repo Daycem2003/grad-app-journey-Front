@@ -4,28 +4,46 @@ import { GraduationCap, LogOut, Menu, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/lib/auth-context";
+import { useNotifications } from "@/lib/notification-context";
 import { cn } from "@/lib/utils";
 
 export type NavItem = { to: string; label: string; icon: LucideIcon; exact?: boolean };
 
 function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  let unreadCount = 0;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const notifs = useNotifications();
+    unreadCount = notifs.unreadCount;
+  } catch {
+    unreadCount = 0;
+  }
+
   return (
     <nav className="flex flex-col gap-1">
       {items.map((item) => {
         const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+        const isNotif = item.to.includes("notifications");
         return (
           <Link
             key={item.to}
             to={item.to}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              "flex items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               active && "bg-sidebar-accent text-sidebar-accent-foreground",
             )}
           >
-            <item.icon className="size-4 shrink-0" />
-            <span className="truncate">{item.label}</span>
+            <div className="flex items-center gap-3 truncate">
+              <item.icon className="size-4 shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </div>
+            {isNotif && unreadCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </Link>
         );
       })}
