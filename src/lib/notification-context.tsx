@@ -53,6 +53,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const socketRef = useRef<WebSocket | null>(null);
   const listenersRef = useRef<Set<NotificationListener>>(new Set());
+  const seenPubkeysRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef<boolean>(true);
 
   const subscribe = useCallback((listener: NotificationListener) => {
     listenersRef.current.add(listener);
@@ -65,12 +67,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (!isAuthenticated) {
       setNotifications([]);
       setUnreadCount(0);
+      seenPubkeysRef.current.clear();
+      isInitialLoadRef.current = true;
       return;
     }
     try {
       const list = await notificationsService.getMyNotifications();
       setNotifications(list);
       setUnreadCount(list.filter((n) => !n.is_read).length);
+      list.forEach((n) => seenPubkeysRef.current.add(n.pubkey));
     } catch {
       // Ignoré si échec
     }
@@ -91,17 +96,57 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  // 1. Chargement initial des notifications au login
+  // 1. Synchronisation périodique automatique (polling réactif toutes les 3s)
   useEffect(() => {
-    if (isAuthenticated) {
-      void refreshNotifications();
-    } else {
+    if (!isAuthenticated) {
       setNotifications([]);
       setUnreadCount(0);
+      seenPubkeysRef.current.clear();
+      isInitialLoadRef.current = true;
+      return;
     }
-  }, [isAuthenticated, refreshNotifications, user]);
 
-  // 2. Connexion WebSocket globale persistante
+    let isSubscribed = true;
+
+    const fetchSync = async () => {
+      try {
+        const list = await notificationsService.getMyNotifications();
+        if (!isSubscribed) return;
+
+        // Détection des nouvelles notifications non vues
+        if (!isInitialLoadRef.current) {
+          const brandNew = list.filter((n) => !seenPubkeysRef.current.has(n.pubkey));
+          if (brandNew.length > 0) {
+            brandNew.forEach((n) => {
+              seenPubkeysRef.current.add(n.pubkey);
+              toast.info(n.objet, {
+                description: n.corps,
+                duration: 6000,
+              });
+            });
+          }
+        } else {
+          list.forEach((n) => seenPubkeysRef.current.add(n.pubkey));
+          isInitialLoadRef.current = false;
+        }
+
+        setNotifications(list);
+        setUnreadCount(list.filter((n) => !n.is_read).length);
+      } catch {
+        // Silencieux
+      }
+    };
+
+    void fetchSync();
+    const interval = window.setInterval(fetchSync, 3000);
+
+    return () => {
+      isSubscribed = false;
+      window.clearInterval(interval);
+    };
+  }, [isAuthenticated, user]);
+
+  // 2. Connexion WebSocket globale persistante (0ms temps réel natif)
   useEffect(() => {
     if (!isAuthenticated || !accessToken) {
       if (socketRef.current) {
@@ -153,15 +198,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               const payload: WebSocketNotificationPayload = data.payload || {};
               const title = payload.objet || "Nouvelle notification";
               const desc = payload.corps || payload.message || "";
+              const pubkey = payload.pubkey || `notif_${Date.now()}`;
 
-              // Toast interactif en temps réel
-              toast.info(title, {
-                description: desc,
-                duration: 6000,
-              });
+              if (!seenPubkeysRef.current.has(pubkey)) {
+                seenPubkeysRef.current.add(pubkey);
+
+                // Toast interactif en temps réel
+                toast.info(title, {
+                  description: desc,
+                  duration: 6000,
+                });
+              }
 
               const newNotif: InAppNotification = {
-                pubkey: payload.pubkey || `notif_${Date.now()}`,
+                pubkey,
                 motif: payload.motif || "AUTRE",
                 document_concerne: payload.document_concerne || null,
                 objet: payload.objet,
@@ -171,7 +221,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 is_read: false,
               };
 
-              // Mise à jour de l'état global
+              // Mise à jour instantanée de l'état
               setNotifications((prev) => {
                 if (prev.some((n) => n.pubkey === newNotif.pubkey)) return prev;
                 return [newNotif, ...prev];
