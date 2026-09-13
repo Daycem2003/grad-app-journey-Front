@@ -216,6 +216,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 document_concerne: payload.document_concerne || null,
                 objet: payload.objet,
                 corps: payload.corps || payload.message || "",
+                piece_jointe_nom: payload.piece_jointe_nom || null,
+                piece_jointe_url: payload.piece_jointe_url || null,
                 application_pubkey: payload.application_pubkey || null,
                 envoyee_le: payload.envoyee_le || new Date().toISOString(),
                 is_read: false,

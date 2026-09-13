@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, Loader2, Inbox } from "lucide-react";
+import { Bell, Loader2, Inbox, Download, Paperclip } from "lucide-react";
 import { PageHeader } from "@/components/layout/SpaceLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -76,6 +76,28 @@ function NotifsCoordinateur() {
                   <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">
                     {n.corps}
                   </p>
+
+                  {n.piece_jointe_nom && (
+                    <div className="mt-2.5">
+                      {n.piece_jointe_url ? (
+                        <a
+                          href={n.piece_jointe_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={n.piece_jointe_nom}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+                        >
+                          <Download className="size-3.5" />
+                          Télécharger la pièce jointe ({n.piece_jointe_nom})
+                        </a>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                          <Paperclip className="size-3.5" /> {n.piece_jointe_nom}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   <p className="mt-2 text-xs text-muted-foreground">
                     {n.envoyee_le
                       ? new Date(n.envoyee_le).toLocaleDateString("fr-FR", {

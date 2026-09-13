@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Send, FileText, CheckCircle2, Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/SpaceLayout";
 import { TablePageSkeleton } from "@/components/shared/PageSkeletons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -23,6 +34,7 @@ import {
 } from "@/components/ui/table";
 import { mastersService, type Master } from "@/services/masters-service";
 import { applicationsService, type ApplicationDTO } from "@/services/applications-service";
+import { notificationsService } from "@/services/notifications-service";
 
 export const Route = createFileRoute("/admin/listes")({
   head: () => ({
@@ -46,6 +58,13 @@ function Listes() {
   const [applications, setApplications] = useState<ApplicationDTO[]>([]);
   const [mastersLoading, setMastersLoading] = useState(true);
   const [appsLoading, setAppsLoading] = useState(false);
+
+  // Modal Notifier les N premiers
+  const [openModal, setOpenModal] = useState(false);
+  const [nPremiers, setNPremiers] = useState<number>(10);
+  const [joindreCSV, setJoindreCSV] = useState<boolean>(true);
+  const [customFile, setCustomFile] = useState<File | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -110,6 +129,12 @@ function Listes() {
   const master = masters.find((m) => m.pubkey === selectedMasterPubkey);
   const places = master?.nombre_places ?? (master as any)?.places ?? 0;
 
+  useEffect(() => {
+    if (places > 0) {
+      setNPremiers(places);
+    }
+  }, [places]);
+
   // Candidats avec score ou admis
   const classement = [...applications].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
@@ -144,6 +169,38 @@ function Listes() {
     toast.success("Liste exportée en CSV avec succès.");
   };
 
+  const handleNotifyTopRanked = async () => {
+    if (!master) return;
+    if (nPremiers <= 0) {
+      toast.error("Veuillez saisir un nombre valide de candidats à notifier.");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const formData = new FormData();
+      formData.append("master_pubkey", master.pubkey);
+      formData.append("n_premiers", nPremiers.toString());
+      if (customFile) {
+        formData.append("piece_jointe", customFile);
+      } else if (joindreCSV) {
+        formData.append("joindre_classement_csv", "true");
+      }
+
+      const res = await notificationsService.notifyTopRanked(formData);
+      toast.success(
+        `Notification envoyée avec succès aux ${res.notified_count} premiers candidats du Master ${res.master_nom}.`
+      );
+      setOpenModal(false);
+      setCustomFile(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de l'envoi des notifications.";
+      toast.error(msg);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   if (mastersLoading) {
     return <TablePageSkeleton />;
   }
@@ -154,9 +211,23 @@ function Listes() {
         title="Listes finales"
         subtitle="Classement des candidats par ordre de score décroissant."
         action={
-          <Button variant="outline" onClick={exporterCSV} disabled={classement.length === 0}>
-            <Download className="size-4" /> Exporter CSV
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={exporterCSV}
+              disabled={classement.length === 0}
+              className="gap-2"
+            >
+              <Download className="size-4" /> Exporter CSV
+            </Button>
+            <Button
+              onClick={() => setOpenModal(true)}
+              disabled={classement.length === 0}
+              className="gap-2"
+            >
+              <Send className="size-4" /> Notifier les N premiers
+            </Button>
+          </div>
         }
       />
 
@@ -238,7 +309,106 @@ function Listes() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal Notifier les N premiers */}
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent className="sm:max-w-[540px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="size-5 text-primary" /> Notifier les N premiers candidats
+            </DialogTitle>
+            <DialogDescription>
+              Envoi automatique d'une convocation personnalisée aux candidats les mieux classés pour le Master{" "}
+              <strong>{master?.nom}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label htmlFor="nPremiers">Nombre de candidats à notifier (N)</Label>
+              <Input
+                id="nPremiers"
+                type="number"
+                min={1}
+                max={classement.length || 100}
+                value={nPremiers}
+                onChange={(e) => setNPremiers(parseInt(e.target.value, 10) || 1)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Sur un total de {classement.length} candidature(s) pour ce Master ({places} places prévues).
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-1.5">
+              <p className="font-semibold text-foreground flex items-center gap-1.5">
+                <FileText className="size-3.5 text-primary" /> Modèle du message généré par candidat :
+              </p>
+              <p className="font-mono text-muted-foreground">
+                <strong>Objet :</strong> Appel au dépôt du dossier de candidature à l'administration de l'institut
+              </p>
+              <p className="font-mono text-muted-foreground">
+                <strong>Corps :</strong> "Salut &#123;prenom&#125; &#123;nom&#125;, vous avez été sélectionné(e) pour la présélection finale pour le Master {master?.nom}. Veuillez respecter les délais."
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Label className="text-sm font-semibold">Pièce jointe (Stockée sur R2)</Label>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="joindreCSV"
+                  checked={joindreCSV && !customFile}
+                  disabled={Boolean(customFile)}
+                  onCheckedChange={(checked) => setJoindreCSV(Boolean(checked))}
+                />
+                <label
+                  htmlFor="joindreCSV"
+                  className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  Générer et attacher automatiquement la liste de classement (CSV)
+                </label>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="customFile" className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Paperclip className="size-3.5" /> Ou téléverser un fichier personnalisé (PDF, CSV, etc.) :
+                </Label>
+                <Input
+                  id="customFile"
+                  type="file"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setCustomFile(f);
+                    if (f) setJoindreCSV(false);
+                  }}
+                />
+                {customFile && (
+                  <p className="text-xs text-primary font-medium">
+                    Fichier sélectionné : {customFile.name} ({(customFile.size / 1024).toFixed(1)} Ko)
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setOpenModal(false)} disabled={isSending}>
+              Annuler
+            </Button>
+            <Button onClick={handleNotifyTopRanked} disabled={isSending} className="gap-2">
+              {isSending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Envoi en cours…
+                </>
+              ) : (
+                <>
+                  <Send className="size-4" /> Notifier les {nPremiers} premiers
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-

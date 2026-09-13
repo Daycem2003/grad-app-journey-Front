@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, FileEdit, Info, Loader2 } from "lucide-react";
+import { Bell, FileEdit, Info, Loader2, Download, Paperclip } from "lucide-react";
 import { PageHeader } from "@/components/layout/SpaceLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNotifications } from "@/lib/notification-context";
@@ -88,6 +88,27 @@ function NotificationsCandidat() {
                         Document concerné : {n.document_concerne}
                       </p>
                     ) : null}
+
+                    {n.piece_jointe_nom && (
+                      <div className="mt-3">
+                        {n.piece_jointe_url ? (
+                          <a
+                            href={n.piece_jointe_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download={n.piece_jointe_nom}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+                          >
+                            <Download className="size-3.5" />
+                            Télécharger la pièce jointe ({n.piece_jointe_nom})
+                          </a>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                            <Paperclip className="size-3.5" /> {n.piece_jointe_nom}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
