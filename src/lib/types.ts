@@ -2,7 +2,6 @@ export type Role = "guest" | "candidat" | "coordinateur" | "admin";
 
 export type MasterStatut = "Ouvert" | "Fermé" | "À venir";
 
-
 export type MasterSummary = {
   pubkey: string;
   nom: string;
@@ -118,10 +117,30 @@ export type Notification = {
   lu: boolean;
 };
 
+/** Référence d'une source utilisée pour une affirmation (renvoyée par /knowledge/ask). */
+export type Citation = {
+  n: number;
+  source_file: string;
+  page: number;
+  extraction_method: string;
+  score: number;
+  excerpt: string;
+};
+
+/** Statut d'une réponse de l'assistant (jamais une erreur HTTP). */
+export type KnowledgeStatus = "answered" | "answered_ungrounded" | "no_relevant_context";
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  // Champs optionnels, remplis uniquement pour les messages de l'assistant RAG.
+  status?: KnowledgeStatus;
+  grounded?: boolean;
+  citations?: Citation[];
+  // Réponse de service en échec (échec réseau, 4xx/5xx) → bulle d'erreur,
+  // jamais une bulle « vide » ni un chargement qui ne se résout pas.
+  error?: boolean;
 };
 
 export const typeLicenceService = {
