@@ -60,7 +60,7 @@ export async function askKnowledge(
   if (options.min_score !== undefined) body["min_score"] = options.min_score;
   if (options.filename) body["filename"] = options.filename;
 
-  const res = await fetch(`${RESOURCE_BASE}/ask`, {
+  const res = await fetch(`${RESOURCE_BASE}/ask/`, {
     method: "POST",
     headers: getHeaders(),
     credentials: "include",
